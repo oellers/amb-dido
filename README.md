@@ -27,7 +27,8 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 
 ## Features in Arbeit
 - Optionen: Einstellen welche Metadaten im Frontend angezeigt werden sollen
-- Integration eigener veröffentlichter Wertelisten/Vokabulare 
+- Integration eigener veröffentlichter Wertelisten/Vokabulare
+- Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld. 
 
 ## Features in Planung
 - Integration der Metadaten in die Wordpress Suchfunktion
