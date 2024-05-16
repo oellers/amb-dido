@@ -31,4 +31,8 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 
 ## Features in Planung
 - Integration der Metadaten in die Wordpress Suchfunktion
+- Tooltips mit Beschreibungen der Werte
+- Anleitung zur Nutzung des Plugins und pflegen von Metadaten
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
+- Optionen: Einstellung der Sprache der Wertelabels
+- Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll
