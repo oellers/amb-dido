@@ -1,0 +1,80 @@
+/* styles.css */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Dynamische Spaltenanzahl */
+    gap: 5px; /* Abstand zwischen den Items */
+    padding: 5px;
+}
+
+.grid-item {
+    display: block;
+    margin: 5px 0;
+}
+
+.amb-field {
+
+    font-weight: bold;
+    border-bottom: solid 1px black;
+    display: block;
+    margin: 10px 0 0 0;
+}
+
+.amb-control, .amb-control-label {
+    display: table-cell;
+    vertical-align: top;
+}
+.amb-control-label {
+    padding-left: 5px;
+    word-break: break-word;
+}
+
+
+.amb-textarea, .amb-textinput {
+    width: 80%;
+}
+
+svg.components-checkbox-control__checked, svg.components-checkbox-control__indeterminate {
+        top: calc(50% - 12px);
+}
+
+
+.amb-narrower {
+  background-color: rgb(255, 255, 255);
+  cursor: pointer;
+  border: 1px solid rgb(155, 155, 155);
+  border-radius: 30px;
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  font-weight: bold;
+  position: relative;
+  top: -1px;
+}
+
+.amb-narrower.collapsed::after {
+  content: "";
+  background-color: rgb(45, 45, 45);
+  position: absolute;
+  width: 3px;
+  height: 60%;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -ms-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+}
+.amb-narrower::before {
+  content: "";
+  background-color: rgb(45, 45, 45);
+  position: absolute;
+  width: 60%;
+  height: 3px;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translateY(-50%) translateX(-50%);
+  -moz-transform: translateY(-50%) translateX(-50%);
+  -ms-transform: translateY(-50%) translateX(-50%);
+  transform: translateY(-50%) translateX(-50%);
+}
+
