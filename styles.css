@@ -1,4 +1,8 @@
-/* styles.css */
+/* styles.css 
+Plugin: AMB-DiDo
+
+*/
+
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Dynamische Spaltenanzahl */
