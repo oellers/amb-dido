@@ -1,8 +1,8 @@
 ---
- Plugin Name: AMB-DidO Plugin 
- Description: Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen
- Version: 0.3
- Author: Justus Henke 
+Plugin Name: AMB-DidO Plugin 
+Description: Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen
+Version: 0.3
+Author: Justus Henke 
 ---
 # AMB-DidO Plugin 
 
