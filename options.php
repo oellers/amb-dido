@@ -57,6 +57,11 @@ function amb_dido_register_settings() {
     foreach ($fields as $key => $value) {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
     }
+    $fields2 = amb_get_all_external_values();
+    foreach ($fields2 as $key => $value) {
+        add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
+    }
+
 
 
 }

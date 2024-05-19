@@ -167,6 +167,71 @@ function amb_get_other_fields() {
  * Wertelisten aus Archiven auslesen
  */
 
+
+function amb_get_all_external_values() {
+    $urls = amb_get_json_urls();
+    $all_values = [];
+
+    foreach ($urls as $key => $url) {
+        $values = amb_get_external_values($key);
+        if (!empty($values)) {
+            $all_values[$key] = $values;
+        }
+    }
+
+    return $all_values;
+}
+
+
+
+// Globale Konfiguration der URLs für verschiedene JSON-Daten
+function amb_get_json_urls() {
+    return [
+        'amb_hochschulfaechersystematik' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json',
+        'amb_learningResourceType' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
+        'amb_audience' => 'https://vocabs.edu-sharing.net/w3id.org/edu-sharing/vocabs/dublin/educationalAudienceRole/index.json'
+    ];
+}
+
+
+// Verallgemeinert für erste Ebene
+function amb_get_external_values($key, $field_label = null) {
+    $urls = amb_get_json_urls();
+
+    if (!isset($urls[$key])) {
+        return []; // Keine Daten, wenn keine URL gefunden wird
+    }
+
+    $response = wp_remote_get($urls[$key]);
+    if (is_wp_error($response)) {
+        return [];
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    // Setzen des Feldetiketts, falls nicht explizit übergeben
+    if (is_null($field_label)) {
+        $field_label = $data['title']['de'] ?? 'Standard-Titel';
+    }
+
+    $concepts = $data['hasTopConcept'] ?? [];
+    $options = [];
+
+    foreach ($concepts as $concept) {
+        if (isset($concept['id']) && isset($concept['prefLabel']['de'])) {
+            $options[] = [$concept['id'] => $concept['prefLabel']['de']];
+        }
+    }
+
+    return [
+        'field_label' => $field_label,
+        'options' => $options
+    ];
+}
+
+
+
 /* HCRT LearningResourceType */
 function amb_get_learning_resource_types() {
     $response = wp_remote_get('https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json');
@@ -293,6 +358,36 @@ function amb_dido_display_defaults($field, $options) {
  * @param array $options Die Optionen als Array von IDs zu Labels.
  * @param array $stored_values Die gespeicherten Werte für die Checkboxen.
  */
+
+function generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
+    // Falls kein Titel übergeben wurde, versuchen, den Titel aus den Optionen zu extrahieren
+    if ($title === null && isset($options['field_label'])) {
+        $title = $options['field_label'];
+    }
+
+    echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
+    echo '<div class="grid-container">';
+    
+    foreach ($options['options'] as $option) {
+        foreach ($option as $id => $label) {
+            //$checked = in_array($id, array_column($stored_values, 'id')) ? 'checked' : '';
+            $checked = in_array($id, $stored_values) ? 'checked' : '';
+            echo '<div class="grid-item components-base-control__field">';
+            echo '<span class="components-checkbox-control__input-container amb-control">';
+            echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input" onchange="toggleSVG(this)">';
+            if ($checked) {
+                echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
+            }
+            echo '</span>';
+            echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
+            echo '</div>';
+        }
+    }
+
+    echo '</div>';
+}
+
+
 function generate_checkbox_group($title, $name, $options, $stored_values) {
     echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
     echo '<div class="grid-container">';
@@ -383,6 +478,20 @@ function render_checkbox_group_recursive($name, $options, $stored_ids, $is_narro
     }
 }
 
+/* Hilfsfunktion um ids aus Arrays zu extrahieren */ 
+function get_selected_ids($meta_field) {
+    $stored_values = get_post_meta(get_the_ID(), $meta_field, true);
+    $stored_values = is_array($stored_values) ? $stored_values : [];
+    $ids = [];
+
+    foreach ($stored_values as $value) {
+        if (isset($value['id'])) {
+            $ids[] = $value['id'];
+        }
+    }
+
+    return $ids;
+}
 
 
 /**
@@ -404,87 +513,59 @@ function amb_dido_meta_box_callback($post) {
     echo '<label for="amb_keywords" class="amb-field">Autor/innen</label><br />';
     echo '<p class="components-form-token-field__help">Namen mit Kommas trennen.</p>';
     echo '<input type="text" name="amb_creator" size="80" value="' . esc_attr($creator) . '" class="amb-textinput" /><br />';
-      
+
 
     // Generierung der Checkbox-Felder
     $defaults = get_option('amb_dido_defaults');
     $checkbox_options = amb_get_other_fields();
 
     foreach ($checkbox_options as $field => $data) {
-        // Prüfe, ob ein Default-Wert gesetzt und nicht leer ist
-        if (isset($defaults[$field]) && !empty($defaults[$field])) {
-            $option_map = [];
-            foreach ($data['options'] as $option_array) {
-                foreach ($option_array as $id => $label) {
-                    $option_map[$id] = $label; // Bereite eine einfache Zuordnung von ID zu Label vor
-                }
+        $option_map = [
+            'field_label' => $data['field_label'],
+            'options' => []
+        ];
+        foreach ($data['options'] as $option_array) {
+            foreach ($option_array as $id => $label) {
+                $option_map['options'][] = [$id => $label];
             }
+        }
+
+        if (isset($defaults[$field]) && !empty($defaults[$field])) {
             amb_dido_display_defaults($field, $option_map);
         } else {
-
-        $stored_ids = get_selected_ids($field);  
-
-            echo '<label class="amb-field">' . esc_html($data['field_label']) . '</label><br />';
-            echo '<div class="grid-container">';
-            foreach ($data['options'] as $option) {
-                foreach ($option as $id => $label) {
-                    $checked = in_array($id, $stored_ids) ? 'checked' : '';  // Überprüfe, ob die ID im Array der gespeicherten IDs ist
-                    echo '<div class="grid-item components-base-control__field">';
-                    echo '<span class="components-checkbox-control__input-container amb-control"><input type="checkbox" name="' . esc_attr($field) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' class="components-checkbox-control__input" onchange="toggleSVG(this)">';
-                    if ($checked) {
-                        echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
-                    }
-                    echo '</span>';
-                    echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
-                    echo '</div>';
-                }
-            }
-            echo '</div>';
+            $stored_ids = get_selected_ids($field);  
+            generate_checkbox_group_any($field, $option_map, $stored_ids);
         }
     }
 
     
+    $audience_types = amb_get_external_values('amb_audience');
+    $stored_audience_types = get_selected_ids('amb_audience'); 
+    generate_checkbox_group_any('amb_audience', $audience_types, $stored_audience_types);
 
 
-    // Learning Resource Type Checkbox-Gruppe
-    $learning_resource_types = amb_get_learning_resource_types();
-    $stored_learning_resource_types = get_post_meta($post->ID, 'amb_learningResourceType', true) ?: [];
-    generate_checkbox_group('Welche Form hat der Inhalt?', 'amb_learningResourceType', $learning_resource_types, $stored_learning_resource_types);
+    $learning_resource_types = amb_get_external_values('amb_learningResourceType');
+    $stored_learning_resource_types = get_selected_ids('amb_learningResourceType'); 
+    generate_checkbox_group_any('amb_learningResourceType', $learning_resource_types, $stored_learning_resource_types);
 
-    // Audience Role Checkbox-Gruppe
-    $audience_types = amb_get_audience_roles();
-    $stored_audience_types = get_post_meta($post->ID, 'amb_audience', true) ?: [];
-    generate_checkbox_group('An welche Zielgruppen richtet sich der Inhalt?', 'amb_audience', $audience_types, $stored_audience_types);
+    $hochschulfaechersystematik_types = amb_get_external_values('amb_hochschulfaechersystematik');
+    $stored_hochschulfaechersystematik_types = get_selected_ids('amb_hochschulfaechersystematik'); 
+    generate_checkbox_group_any('amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
+
 
     // Hochschulfaechersystematik Checkbox-Gruppe
     /* 
     $hochschulfaechersystematik_types = amb_get_hochschulfaechersystematik();
     $stored_hochschulfaechersystematik_types = get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: [];
     generate_checkbox_group('Welche Fächer betreffen den Inhalt?', 'amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-    */
+    
     
     // Hochschulfaechersystematik Checkbox-Gruppe mit Narrower
     $hochschulfaechersystematik_types = amb_get_hochschulfaechersystematik_with_narrower();
     $stored_hochschulfaechersystematik_types = get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: [];
     generate_checkbox_group_with_narrower('Welche Fächer betreffen den Inhalt?', 'amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-
+    */
 }
-
-/* Hilfsfunktion um ids aus Arrays zu extrahieren */ 
-function get_selected_ids($meta_field) {
-    $stored_values = get_post_meta(get_the_ID(), $meta_field, true);
-    $stored_values = is_array($stored_values) ? $stored_values : [];
-    $ids = [];
-
-    foreach ($stored_values as $value) {
-        if (isset($value['id'])) {
-            $ids[] = $value['id'];
-        }
-    }
-
-    return $ids;
-}
-
 
 
 
