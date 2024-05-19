@@ -29,12 +29,36 @@ function add_metadata_to_content($content) {
     return $content;
 }
 
-add_filter('the_content', 'add_metadata_to_content', 20); // Priorität geändert, um sicherzustellen, dass es nach den meisten anderen Anpassungen läuft
+add_filter('the_content', 'add_metadata_to_content', 20); 
+
+function show_post_metadata() {
+    global $post;
+    if (empty($post)) return '';
+
+    $output = '<div class="post-metadata-box">';
+    $options = get_option('amb_dido_metadata_display_options');
+
+    // Dynamisch erstellte Felder basierend auf Benutzerauswahl
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    foreach ($all_fields as $key => $info) {
+        if (!empty($options[$key])) {
+            $metadata = get_post_meta($post->ID, $key, true);
+            if (!empty($metadata)) {
+                $output .= '<h3>' . esc_html($info['field_label']) . ':</h3><ul>';
+                foreach ($metadata as $item) {
+                    $output .= '<li>' . esc_html($item['prefLabel']['de']) . '</li>';
+                }
+                $output .= '</ul>';
+            }
+        }
+    }
+
+    $output .= '</div>';
+    return $output;
+}
 
 
-
-
-
+/* alt:
 function show_post_metadata() {
     global $post;
     if (empty($post)) return '';
@@ -69,3 +93,33 @@ function show_post_metadata() {
 
     return $output;
 }
+*/
+
+// Hook function für das Theme 
+function show_amb_metadata($meta_key) {
+    global $post;
+    if (empty($post)) return;
+
+    $config = get_metadata_config();
+    $field_label = $config[$meta_key]['field_label'] ?? $meta_key;
+
+    $metadata = get_post_meta($post->ID, $meta_key, true);
+    if (empty($metadata)) return;
+
+    echo '<div class="amb-metadata-box">';
+    echo '<h3>' . esc_html($field_label) . ':</h3><ul>';
+
+    if (is_array($metadata)) {
+        foreach ($metadata as $item) {
+            if (isset($item['prefLabel']['de'])) {
+                echo '<li>' . esc_html($item['prefLabel']['de']) . '</li>';
+            }
+        }
+    } else {
+        echo '<li>' . esc_html($metadata) . '</li>';
+    }
+
+    echo '</ul></div>';
+}
+
+// Nutzung im Theme: <?php output_specific_post_metadata('amb_audience'); ?>

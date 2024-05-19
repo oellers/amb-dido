@@ -43,14 +43,18 @@ function amb_dido_register_settings() {
     // Vorhandene Einstellungen
     register_setting('amb_dido_settings_group', 'amb_dido_post_types', 'amb_dido_sanitize_post_types');
     register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults');
-    register_setting('amb_dido_settings_group', 'amb_dido_display_metadata', 'absint'); // Neue Einstellung für die Anzeige der Metadaten
+    register_setting(
+        'amb_dido_settings_group',
+        'amb_dido_metadata_display_options',
+        'amb_dido_sanitize_options'
+    );
 
     // Abschnitte und Felder hinzufügen
     add_settings_section('amb_dido_main_section', 'Post-Typen Einstellungen', null, 'amb_dido');
     add_settings_field('amb_dido_post_types_field', 'Aktivierte Post-Typen', 'amb_dido_post_types_field_html', 'amb_dido', 'amb_dido_main_section');
 
-    add_settings_section('amb_dido_display_metadata_section', 'Anzeigeoptionen', null, 'amb_dido');
-    add_settings_field('amb_dido_display_metadata_field', 'Metadaten im Frontend anzeigen', 'amb_dido_display_metadata_field_html', 'amb_dido', 'amb_dido_display_metadata_section');
+    //add_settings_section('amb_dido_display_metadata_section', 'Anzeigeoptionen', null, 'amb_dido');
+    //add_settings_field('amb_dido_display_metadata_field', 'Metadaten im Frontend anzeigen', 'amb_dido_display_metadata_field_html', 'amb_dido', 'amb_dido_display_metadata_section');
     
     add_settings_section('amb_dido_default_section', 'Voreinstellungen für Metadaten', 'amb_dido_default_section_description', 'amb_dido');
     $fields = amb_get_other_fields();
@@ -62,11 +66,63 @@ function amb_dido_register_settings() {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
     }
 
+    register_setting(
+        'amb_dido_settings_group',
+        'amb_dido_metadata_display_options',
+        'amb_dido_sanitize_options'
+    );
+
+    add_settings_section(
+        'amb_dido_metadata_section',
+        'Anzeige der Metadaten im Frontend',
+        'amb_dido_metadata_section_callback',
+        'amb_dido'
+    );
+
+    // Die Felder für die Anzeige der Metadaten generieren
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    foreach ($all_fields as $key => $info) {
+        add_settings_field(
+            $key,
+            $info['field_label'],
+            'amb_dido_checkbox_field_callback',
+            'amb_dido',
+            'amb_dido_metadata_section',
+            ['id' => $key]
+        );
+    }
+
 
 
 }
 
 
+/** 
+ * Anzeige von Metadaten im Frontend
+**/
+
+
+function amb_dido_metadata_section_callback() {
+    echo '<p>Wählen Sie die Metadatenfelder, die im Frontend angezeigt werden sollen.</p>';
+}
+
+function amb_dido_checkbox_field_callback($args) {
+    $options = get_option('amb_dido_metadata_display_options');
+    $checked = isset($options[$args['id']]) ? checked(1, $options[$args['id']], false) : '';
+    echo '<input type="checkbox" id="'. esc_attr($args['id']) .'" name="amb_dido_metadata_display_options['. esc_attr($args['id']) .']" value="1" '. $checked .' />';
+}
+
+function amb_dido_sanitize_options($input) {
+    $new_input = [];
+    foreach($input as $key => $value) {
+        if (isset($input[$key])) {
+            $new_input[$key] = $value ? 1 : 0;
+        }
+    }
+    return $new_input;
+}
+
+// veraltet:
 function amb_dido_display_metadata_field_html() {
     $options = get_option('amb_dido_display_metadata');
     $checked = $options ? 'checked' : '';
@@ -74,6 +130,10 @@ function amb_dido_display_metadata_field_html() {
     echo '<label for="amb_dido_display_metadata"> Metadaten im Frontend anzeigen</label>';
 }
 
+
+/** 
+ * Standardwerte für Metadaten
+**/
 
 function amb_dido_default_section_description() {
     echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressourcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt.</p>';
@@ -100,12 +160,10 @@ function amb_dido_default_field_html() {
     }
 }
 
-function amb_dido_audience_roles_html() {
-    $fields = amb_get_audience_roles();
-    foreach ($fields as $key => $value) {
-        add_settings_field($key, $value['field'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_audience_roles_section', ['id' => $key, 'options' => $value['options']]);
-    }
-}
+
+/** 
+ * Post-Typen Auswahl 
+**/
 
 function amb_dido_post_types_field_html() {
     $selected_post_types = get_option('amb_dido_post_types', []);
