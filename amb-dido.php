@@ -338,12 +338,25 @@ function amb_dido_display_defaults($field, $options) {
     $defaults = get_option('amb_dido_defaults');
 
     // Mapping von field auf field_label
-    $all_fields = amb_get_other_fields();
+    //$all_fields = amb_get_other_fields();
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
     $field_label = isset($all_fields[$field]['field_label']) ? $all_fields[$field]['field_label'] : $field;
 
     // Ausgabe der Default-Werte oder "Keine Auswahl"
     if (isset($defaults[$field]) && $defaults[$field] !== '') {
-        $label = $options[$defaults[$field]] ?? 'Unbekannte Auswahl';
+        $default_value = $defaults[$field];
+        $label = 'Unbekannte Auswahl';
+
+        // Überprüfe die Optionen und finde das passende Label
+        if (isset($all_fields[$field]['options'])) {
+            foreach ($all_fields[$field]['options'] as $option) {
+                if (isset($option[$default_value])) {
+                    $label = $option[$default_value];
+                    break;
+                }
+            }
+        }
+
         echo "<p>{$field_label}: <strong>" . esc_html($label) . "</strong></p>";
     } else {
         echo "<p>{$field_label}: <strong>Keine Auswahl getroffen</strong></p>";
@@ -517,7 +530,8 @@ function amb_dido_meta_box_callback($post) {
 
     // Generierung der Checkbox-Felder
     $defaults = get_option('amb_dido_defaults');
-    $checkbox_options = amb_get_other_fields();
+    //$checkbox_options = amb_get_other_fields();
+    $checkbox_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
 
     foreach ($checkbox_options as $field => $data) {
         $option_map = [
@@ -538,7 +552,7 @@ function amb_dido_meta_box_callback($post) {
         }
     }
 
-    
+    /*
     $audience_types = amb_get_external_values('amb_audience');
     $stored_audience_types = get_selected_ids('amb_audience'); 
     generate_checkbox_group_any('amb_audience', $audience_types, $stored_audience_types);
@@ -551,7 +565,7 @@ function amb_dido_meta_box_callback($post) {
     $hochschulfaechersystematik_types = amb_get_external_values('amb_hochschulfaechersystematik');
     $stored_hochschulfaechersystematik_types = get_selected_ids('amb_hochschulfaechersystematik'); 
     generate_checkbox_group_any('amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-
+    */
 
     // Hochschulfaechersystematik Checkbox-Gruppe
     /* 

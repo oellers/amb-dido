@@ -66,12 +66,6 @@ function amb_dido_register_settings() {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
     }
 
-    register_setting(
-        'amb_dido_settings_group',
-        'amb_dido_metadata_display_options',
-        'amb_dido_sanitize_options'
-    );
-
     add_settings_section(
         'amb_dido_metadata_section',
         'Anzeige der Metadaten im Frontend',
