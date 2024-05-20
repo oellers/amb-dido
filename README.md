@@ -24,9 +24,9 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Einstellen der Seitentypen, in denen Metadaten aktiviert sind
 - Optionen: Einstellen von Standard-Werten und ausblenden dieser Felder im Editor
 - Optionen: Ausgabe von Metadaten im Frontend (unterhalb Content)
+- Optionen: Einstellen welche Metadaten im Frontend angezeigt werden sollen
 
 ## Features in Arbeit
-- Optionen: Einstellen welche Metadaten im Frontend angezeigt werden sollen
 - Integration eigener veröffentlichter Wertelisten/Vokabulare
 - Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld. 
 
@@ -37,3 +37,4 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
 - Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll
+- Minor: Mehr Optionen für Frontendeinstellungen, incl. Custom CSS
