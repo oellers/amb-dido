@@ -82,3 +82,10 @@ svg.components-checkbox-control__checked, svg.components-checkbox-control__indet
   transform: translateY(-50%) translateX(-50%);
 }
 
+
+.amb-code {
+        font-family: monospace;
+    unicode-bidi: isolate;
+    white-space: pre;
+    margin: 1em 0px;
+}

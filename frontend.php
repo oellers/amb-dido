@@ -19,12 +19,11 @@ function add_metadata_to_content($content) {
         if (function_exists('show_post_metadata')) {
             $metadata_content = show_post_metadata();
             $content .= $metadata_content;
-            amb_dido_log('Metadata added: ' . esc_html($metadata_content)); // Zum Debuggen
         } else {
-            amb_dido_log('Function show_post_metadata not found.');
+            // do nothing
         }
     } else {
-        amb_dido_log('Conditions not met for metadata display.');
+        // do nothing
     }
     return $content;
 }
@@ -35,7 +34,7 @@ function show_post_metadata() {
     global $post;
     if (empty($post)) return '';
 
-    $output = '<div class="post-metadata-box">';
+    $output = '<div class="amb-metadata-box">';
     $options = get_option('amb_dido_metadata_display_options');
 
     // Dynamisch erstellte Felder basierend auf Benutzerauswahl
@@ -44,7 +43,7 @@ function show_post_metadata() {
         if (!empty($options[$key])) {
             $metadata = get_post_meta($post->ID, $key, true);
             if (!empty($metadata)) {
-                $output .= '<h3>' . esc_html($info['field_label']) . ':</h3><ul>';
+                $output .= '<h4>' . esc_html($info['field_label']) . ':</h4><ul>';
                 foreach ($metadata as $item) {
                     $output .= '<li>' . esc_html($item['prefLabel']['de']) . '</li>';
                 }
@@ -107,7 +106,7 @@ function show_amb_metadata($meta_key) {
     if (empty($metadata)) return;
 
     echo '<div class="amb-metadata-box">';
-    echo '<h3>' . esc_html($field_label) . ':</h3><ul>';
+    echo '<h4>' . esc_html($field_label) . ':</h4><ul>';
 
     if (is_array($metadata)) {
         foreach ($metadata as $item) {
@@ -122,4 +121,4 @@ function show_amb_metadata($meta_key) {
     echo '</ul></div>';
 }
 
-// Nutzung im Theme: <?php output_specific_post_metadata('amb_audience'); ?>
+// Nutzung im Theme: <?php show_amb_metadata('amb_audience'); ?>

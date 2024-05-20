@@ -104,6 +104,17 @@ function amb_dido_register_settings() {
 
 function amb_dido_metadata_section_callback() {
     echo '<p>Wählen Sie die Metadatenfelder, die im Frontend angezeigt werden sollen.</p>';
+    echo '<p>Sie können auch beliebige Felder in Ihrem Theme mit <span class="amb-code">show_amb_metadata("NAME_DES_FELDS")</span> aufrufen.</p>';
+    echo '<p>Folgende Felder können Sie dafür verwenden:</p>';
+
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+
+
+    foreach ($all_fields as $field => $data) {
+
+        echo $all_fields[$field]['field_label'] . ": <span class='code'>" . $field . "</span> | ";
+    }
+
 }
 
 function amb_dido_checkbox_field_callback($args) {
@@ -175,9 +186,7 @@ function amb_dido_post_types_field_html() {
     }
 }
 
-/**
- * Sanitize Callback für Post-Typ-Einstellungen.
- */
+
 function amb_dido_sanitize_post_types($input) {
     $valid_post_types = get_post_types(['public' => true]);
     return array_intersect($valid_post_types, $input);

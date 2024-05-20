@@ -7,9 +7,11 @@
     background-color: #f9f9f9;
 }
 
-.amb-metadata-box h3 {
-    font-size: 1em ;
+.amb-metadata-box h4 {
+    /*font-size: 1em ;
     margin-top: 0;
+    */
+    margin: 10px 0 5px 0;
 }
 
 .amb-metadata-box ul {

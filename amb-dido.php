@@ -95,7 +95,7 @@ function amb_get_other_fields() {
     return [
         
         'amb_inLanguage' => [
-            'field_label' => 'In welcher Sprache ist der Inhalt verfasst?',
+            'field_label' => 'Sprache des Inhalts',
             'options' => [
                 ['de' => 'Deutsch'],
                 ['en' => 'English'],
@@ -103,14 +103,14 @@ function amb_get_other_fields() {
             ]
         ],
         'amb_isAccessibleForFree' => [
-            'field_label' => 'Ist der Inhalt kostenfrei zugänglich?',
+            'field_label' => 'Kostenfreier Zugang',
             'options' => [
                 ['true' => 'Ja'],
                 ['false' => 'Nein']
             ]
         ],
         'amb_license' => [
-            'field_label' => 'Unter welcher Lizenz ist der Inhalt veröffentlicht?',
+            'field_label' => 'Lizenz des Inhalts',
             'options' => [
                 ['http://creativecommons.org/licenses/by/4.0/legalcode.de' => 'CC BY 4.0 Namensnennung'],
                 ['http://creativecommons.org/licenses/by-sa/4.0/legalcode.de' => 'CC BY-SA 4.0 Gleiche Bedingungen '],
@@ -119,14 +119,14 @@ function amb_get_other_fields() {
             ]
         ],
         'amb_conditionsOfAccess' => [
-            'field_label' => 'Welche Zugangsbedingungen bestehen?',
+            'field_label' => 'Zugangsbedingungen',
             'options' => [
                 ['http://w3id.org/kim/conditionsOfAccess/no_login' => 'Keine Anmeldung erforderlich'],
                 ['http://w3id.org/kim/conditionsOfAccess/login' => 'Anmeldung erforderlich']
             ]
         ],
         'amb_area' => [
-            'field_label' => 'Welcher Leistungsbereich der Hochschule ist betroffen?',
+            'field_label' => 'Leistungsbereich der Hochschule',
             'options' => [
                 ['General' => 'bereichsübergreifend'],
                 ['Teaching' => 'Lehre/Studium'],
@@ -135,7 +135,7 @@ function amb_get_other_fields() {
             ]
         ],
         'amb_type' => [
-            'field_label' => 'Was ist der grundlegende Inhaltstyp?',
+            'field_label' => 'Grundlegender Inhaltstyp',
             'options' => [
                 ['LearningResource' => 'Lernressource'],
                 ['HowToTip' => 'Anleitung'],
@@ -143,7 +143,7 @@ function amb_get_other_fields() {
             ]
         ],
         'amb_organisationalContext' => [
-            'field_label' => 'Zu welchem Organisationskontext passt der Inhalt?',
+            'field_label' => 'Organisationskontext',
             'options' => [
                 ['didacticSupport' => 'didaktischer Support'],
                 ['legalSupport' => 'rechtlicher Support'],
@@ -152,7 +152,7 @@ function amb_get_other_fields() {
             ]
         ],
         'amb_educationalLevel' => [
-            'field_label' => 'Für welche Stufe im Bildungssystem wurde der Inhalt erstellt?',
+            'field_label' => 'Stufe im Bildungssystem',
             'options' => [
                 ['https://w3id.org/kim/educationalLevel/level_A' => 'Hochschule'],
                 ['https://w3id.org/kim/educationalLevel/level_B' => 'Vorbereitungsdienst'],
