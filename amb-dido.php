@@ -568,7 +568,7 @@ function amb_dido_meta_box_callback($post) {
     */
 
     // Hochschulfaechersystematik Checkbox-Gruppe
-    /* 
+    /* veraltet:
     $hochschulfaechersystematik_types = amb_get_hochschulfaechersystematik();
     $stored_hochschulfaechersystematik_types = get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: [];
     generate_checkbox_group('Welche Fächer betreffen den Inhalt?', 'amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);

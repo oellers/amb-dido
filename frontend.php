@@ -90,4 +90,67 @@ function show_amb_metadata($meta_key) {
     echo '</ul></div>';
 }
 
-// Nutzung im Theme: <?php show_amb_metadata('amb_audience'); ?>
+/* Nutzung im Theme: show_amb_metadata('amb_audience');  */
+
+
+/** 
+ * Shortcode für das Theme
+ **/ 
+function show_amb_metadata_shortcode($atts) {
+    global $post;
+    if (empty($post)) return '';
+
+    // Standardattributwerte setzen
+    $atts = shortcode_atts([
+        'field' => '', // Kein Standardfeld, benutze Optionen
+    ], $atts);
+
+    // Holen Sie sich die gesamte Feldkonfiguration
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+
+    $output = '';
+    $options = get_option('amb_dido_metadata_display_options', []);
+
+    if ($atts['field']) {
+        // Ein spezifisches Feld anzeigen, wenn angegeben
+        $fields = [$atts['field']];
+    } else {
+        // Hole die aktivierten Felder aus den Optionen
+        $fields = array_keys(array_filter($options, function($value) { return $value == true; }));
+    }
+
+    foreach ($fields as $field) {
+        if (!isset($all_fields[$field])) continue; // Überspringe, falls keine Feldkonfiguration vorhanden
+
+        $metadata = get_post_meta($post->ID, $field, true);
+        if (!empty($metadata)) {
+            $field_label = $all_fields[$field]['field_label'] ?? $field; // Benutze das Feldlabel oder den Schlüssel als Fallback
+            $output .= '<div class="amb-metadata-box">';
+            $output .= '<h4>' . esc_html($field_label) . ':</h4><ul>';
+
+            if (is_array($metadata)) {
+                foreach ($metadata as $item) {
+                    if (isset($item['prefLabel']['de'])) {
+                        $output .= '<li>' . esc_html($item['prefLabel']['de']) . '</li>';
+                    }
+                }
+            } else {
+                $output .= '<li>' . esc_html($metadata) . '</li>';
+            }
+
+            $output .= '</ul></div>';
+        }
+    }
+
+    return $output;
+}
+
+
+function register_amb_metadata_shortcode() {
+    add_shortcode('show_amb_metadata', 'show_amb_metadata_shortcode');
+}
+add_action('init', 'register_amb_metadata_shortcode');
+
+
+/* Nutzung im Editor: [show_amb_metadata field="amb_audience"] oder [show_amb_metadata] für alle aktivierten Felder */
+/* Nutzung im Theme: echo do_shortcode('[show_amb_metadata field="amb_learningResourceType"]'); */

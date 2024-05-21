@@ -98,6 +98,7 @@ function amb_dido_register_settings() {
 
 function amb_dido_metadata_section_callback() {
     echo '<p>Wählen Sie die Metadatenfelder, die im Frontend angezeigt werden sollen.</p>';
+    echo '<p> Alternativ können Metadatenfelder im Editor per Shortcodes aufgerufen werden: <span class="amb-code">[show_amb_metadata field="amb_audience"]</span> oder <span class="amb-code">[show_amb_metadata]</span> für alle aktivierten Felder.</p>';
     echo '<p>Sie können auch beliebige Felder in Ihrem Theme mit <span class="amb-code">show_amb_metadata("NAME_DES_FELDS")</span> aufrufen.</p>';
     echo '<p>Folgende Felder können Sie dafür verwenden:</p>';
 
@@ -106,7 +107,7 @@ function amb_dido_metadata_section_callback() {
 
     foreach ($all_fields as $field => $data) {
 
-        echo $all_fields[$field]['field_label'] . ": <span class='code'>" . $field . "</span> | ";
+        echo $all_fields[$field]['field_label'] . ": <span class='amb-code'>" . $field . "</span> | ";
     }
 
 }

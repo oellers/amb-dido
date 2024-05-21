@@ -84,7 +84,8 @@ svg.components-checkbox-control__checked, svg.components-checkbox-control__indet
 
 
 .amb-code {
-        font-family: monospace;
+    font-family: monospace;  
+    font-weight: bold;
     unicode-bidi: isolate;
     white-space: pre;
     margin: 1em 0px;
