@@ -68,11 +68,14 @@ function show_amb_metadata($meta_key) {
     global $post;
     if (empty($post)) return;
 
-    $config = get_metadata_config();
-    $field_label = $config[$meta_key]['field_label'] ?? $meta_key;
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+
+    if (!isset($all_fields[$meta_key])) return; 
 
     $metadata = get_post_meta($post->ID, $meta_key, true);
-    if (empty($metadata)) return;
+    if (empty($metadata)) return; 
+
+    $field_label = $all_fields[$meta_key]['field_label'] ?? $meta_key; 
 
     echo '<div class="amb-metadata-box">';
     echo '<h4>' . esc_html($field_label) . ':</h4><ul>';
@@ -89,7 +92,6 @@ function show_amb_metadata($meta_key) {
 
     echo '</ul></div>';
 }
-
 /* Nutzung im Theme: show_amb_metadata('amb_audience');  */
 
 
@@ -150,7 +152,5 @@ function register_amb_metadata_shortcode() {
     add_shortcode('show_amb_metadata', 'show_amb_metadata_shortcode');
 }
 add_action('init', 'register_amb_metadata_shortcode');
-
-
 /* Nutzung im Editor: [show_amb_metadata field="amb_audience"] oder [show_amb_metadata] für alle aktivierten Felder */
 /* Nutzung im Theme: echo do_shortcode('[show_amb_metadata field="amb_learningResourceType"]'); */
