@@ -134,14 +134,6 @@ function amb_get_other_fields() {
                 ['Transfer' => 'Transfer/Third Mission']
             ]
         ],
-        'amb_type' => [
-            'field_label' => 'Grundlegender Inhaltstyp',
-            'options' => [
-                ['LearningResource' => 'Lernressource'],
-                ['HowToTip' => 'Anleitung'],
-                ['HowToDirection' => 'Anweisung/Vorschrift']
-            ]
-        ],
         'amb_organisationalContext' => [
             'field_label' => 'Organisationskontext',
             'options' => [
@@ -168,6 +160,20 @@ function amb_get_other_fields() {
  */
 
 
+// Globale Konfiguration der URLs für verschiedene JSON-Daten
+function amb_get_json_urls() {
+    return [
+        'amb_type' => 'https://hof-halle-wittenberg.github.io/vocabs/type/index.json',
+        'amb_learningResourceType' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
+        'amb_audience' => 'https://vocabs.edu-sharing.net/w3id.org/edu-sharing/vocabs/dublin/educationalAudienceRole/index.json',
+        'amb_hochschulfaechersystematik' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json'
+        
+
+    ];
+}
+
+
+
 function amb_get_all_external_values() {
     $urls = amb_get_json_urls();
     $all_values = [];
@@ -183,15 +189,6 @@ function amb_get_all_external_values() {
 }
 
 
-
-// Globale Konfiguration der URLs für verschiedene JSON-Daten
-function amb_get_json_urls() {
-    return [
-        'amb_hochschulfaechersystematik' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json',
-        'amb_learningResourceType' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
-        'amb_audience' => 'https://vocabs.edu-sharing.net/w3id.org/edu-sharing/vocabs/dublin/educationalAudienceRole/index.json'
-    ];
-}
 
 
 // Verallgemeinert für erste Ebene
