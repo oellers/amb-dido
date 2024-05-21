@@ -28,7 +28,8 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 
 ## Features in Arbeit
 - Integration eigener veröffentlichter Wertelisten/Vokabulare
-- Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld. 
+- Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld.
+- Optionen: Ausgabe von Keywords, Autoren und Beschreibung im Content. 
 
 ## Features in Planung
 - Integration der Metadaten in die Wordpress Suchfunktion
@@ -37,4 +38,3 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
 - Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll
-- Minor: Mehr Optionen für Frontendeinstellungen, incl. Custom CSS
