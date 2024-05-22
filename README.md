@@ -31,7 +31,7 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 
 ## Features in Arbeit
 - Editor/Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld.
-- Optionen: Ausgabe von Keywords, Autoren und Beschreibung im Content.
+- Frontend: Ausgabe von Keywords, Autoren und Beschreibung im Frontend.
 - Optimierung: Integration von Mehrebenen-Vokabularen in die Standardfunktion zur Generierung der Metadatenfelder
 
 ## Features in Planung
