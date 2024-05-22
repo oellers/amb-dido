@@ -40,5 +40,5 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Standard-Wordpress-Felder für Keywords (tags) und Beschreibung (excerpt) nutzen statt Plugin-spezifischer
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
-- Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll
-- Optionen: Zusätzliche Wertelisten aus Archiven abrufen und integrieren. 
+- Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll bzw. bestimmte Felder deaktivieren.
+- Optionen: Zusätzliche selbstgewählte Wertelisten aus Archiven abrufen und integrieren. 
