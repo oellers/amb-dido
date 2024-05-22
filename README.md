@@ -1,7 +1,7 @@
 ---
 Plugin Name: AMB-DidO Plugin 
 Description: Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen auf beliebigen Wordpress-Seiten.
-Latest Release: 0.4.2
+Latest Release: 0.5
 Author: Justus Henke / HoF
 ---
 # AMB-DidO Plugin 
@@ -18,23 +18,27 @@ Kontakt und Feedback sowie Feature-Requests: opendata@hof.uni-halle.de
 Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 
 ## Integrierte Features
-- Auswählen von Metadaten (Werte und offene Felder)
-- Erstellen des JSON-LD Skripts im Quellcode
-- Import öffentlicher Wertelisten/Vokabulare (AMB, LRMI, schema.org) 
+- Editor: Auswählen von Metadaten (Werte und offene Felder)
+- Quellcode: Erstellen des JSON-LD Skripts im Quellcode
+- Optimierung: Import öffentlicher Wertelisten/Vokabulare (AMB, LRMI, schema.org) 
 - Optionen: Einstellen der Seitentypen, in denen Metadaten aktiviert sind
 - Optionen: Einstellen von Standard-Werten und ausblenden dieser Felder im Editor
 - Optionen: Ausgabe von Metadaten im Frontend (unterhalb Content)
 - Optionen: Einstellen welche Metadaten im Frontend angezeigt werden sollen
+- Frontend: Hook-Function und Shortcode für einbau beliebiger Metadaten im Frontend
+- Optimierung: Integration eigener veröffentlichter Wertelisten/Vokabulare
 
 ## Features in Arbeit
-- Integration eigener veröffentlichter Wertelisten/Vokabulare
-- Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld.
-- Optionen: Ausgabe von Keywords, Autoren und Beschreibung im Content. 
+- Editor/Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld.
+- Optionen: Ausgabe von Keywords, Autoren und Beschreibung im Content.
+- Optimierung: Integration von Mehrebenen-Vokabularen in die Standardfunktion zur Generierung der Metadatenfelder
 
 ## Features in Planung
-- Integration der Metadaten in die Wordpress Suchfunktion
-- Tooltips mit Beschreibungen der Werte
-- Anleitung zur Nutzung des Plugins und pflegen von Metadaten
+- Optimierung: Integration der Metadaten in die Wordpress Suchfunktion
+- Editor: Tooltips mit Beschreibungen der Werte
+- Optionen: Anleitung zur Nutzung des Plugins und pflegen von Metadaten 
+- Optionen: Standard-Wordpress-Felder für Keywords (tags) und Beschreibung (excerpt) nutzen statt Plugin-spezifischer
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
-- Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll
+- Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll bzw. bestimmte Felder deaktivieren.
+- Optionen: Zusätzliche selbstgewählte Wertelisten aus Archiven abrufen und integrieren. 
