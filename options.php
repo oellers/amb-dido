@@ -40,14 +40,10 @@ function amb_dido_settings_page() {
  * Registriert die Einstellungen und Sektionen.
  */
 function amb_dido_register_settings() {
-    // Vorhandene Einstellungen
-    register_setting('amb_dido_settings_group', 'amb_dido_post_types', 'amb_dido_sanitize_post_types');
-    register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults');
-    register_setting(
-        'amb_dido_settings_group',
-        'amb_dido_metadata_display_options',
-        'amb_dido_sanitize_options'
-    );
+    // Einstellungen registrieren
+    register_setting('amb_dido_settings_group', 'amb_dido_post_types', 'amb_dido_sanitize_post_types');  // aktivierte Post-Typen
+    register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults'); // Standard-Werte für Felder
+    register_setting('amb_dido_settings_group', 'amb_dido_metadata_display_options', 'amb_dido_sanitize_options'); // Frontend-Darstellung
 
     // Abschnitte und Felder hinzufügen
     add_settings_section('amb_dido_main_section', 'Post-Typen Einstellungen', null, 'amb_dido');
@@ -55,16 +51,21 @@ function amb_dido_register_settings() {
 
     //add_settings_section('amb_dido_display_metadata_section', 'Anzeigeoptionen', null, 'amb_dido');
     //add_settings_field('amb_dido_display_metadata_field', 'Metadaten im Frontend anzeigen', 'amb_dido_display_metadata_field_html', 'amb_dido', 'amb_dido_display_metadata_section');
+
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
     
     add_settings_section('amb_dido_default_section', 'Voreinstellungen für Metadaten', 'amb_dido_default_section_description', 'amb_dido');
-    $fields = amb_get_other_fields();
-    foreach ($fields as $key => $value) {
+
+    //$fields = amb_get_other_fields();
+    foreach ($all_fields as $key => $value) {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
-    }
+    } 
+    /*
     $fields2 = amb_get_all_external_values();
     foreach ($fields2 as $key => $value) {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
-    }
+    } 
+    */
 
     add_settings_section(
         'amb_dido_metadata_section',
@@ -74,7 +75,6 @@ function amb_dido_register_settings() {
     );
 
     // Die Felder für die Anzeige der Metadaten generieren
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
     foreach ($all_fields as $key => $info) {
         add_settings_field(
             $key,
@@ -142,24 +142,40 @@ function amb_dido_display_metadata_field_html() {
 **/
 
 function amb_dido_default_section_description() {
-    echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressourcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt.</p>';
+    echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressourcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt. Sie können Felder auch ausblenden, ohne einen Standardwert zu setzen. </p>';
 }
 
 function amb_dido_default_field_callback($args) {
-    $options = get_option('amb_dido_defaults');
-    echo "<select name='amb_dido_defaults[{$args['id']}]'>";
-    echo "<option value=''>Keine Auswahl</option>"; // Option "Keine Auswahl" hinzufügen
-    foreach ($args['options'] as $option_array) {
-        foreach ($option_array as $id => $label) {
-            $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
-            echo "<option value='$id' $selected>$label</option>";
-        }
+  $options = get_option('amb_dido_defaults');
+  echo "<select name='amb_dido_defaults[{$args['id']}]'>";
+  echo "<option value=''>--Keine Auswahl--</option>"; // Option "Keine Auswahl" hinzufügen
+  echo "<option value='deactivate'" . ($options[$args['id']] === 'deactivate' ? ' selected="selected"' : '') . ">--Feld ausblenden--</option>"; // Option "Feld ausblenden" hinzufügen
+  foreach ($args['options'] as $option_array) {
+    foreach ($option_array as $id => $label) {
+      $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
+      echo "<option value='$id' $selected>$label</option>";
     }
-    echo "</select>";
+  }
+  echo "</select>";
 }
 
+
+function amb_dido_sanitize_defaults($value) {
+  if (!isset($value) || empty($value)) {
+    return ''; // Return empty string for invalid values (except "deactivate")
+  } elseif ($value === 'deactivate') {
+    return 'deactivate'; // Return "deactivate" as is
+  } else {
+    return $value; // Return the sanitized value
+  }
+}
+
+
+register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults');
+
+// veraltet:
 function amb_dido_default_field_html() {
-    echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressorcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt.';
+    echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressourcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt. ';
     $fields = amb_get_other_fields();
     foreach ($fields as $key => $value) {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);

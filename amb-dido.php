@@ -124,25 +124,8 @@ function amb_get_other_fields() {
                 ['http://w3id.org/kim/conditionsOfAccess/no_login' => 'Keine Anmeldung erforderlich'],
                 ['http://w3id.org/kim/conditionsOfAccess/login' => 'Anmeldung erforderlich']
             ]
-        ],
-        'amb_area' => [
-            'field_label' => 'Leistungsbereich der Hochschule',
-            'options' => [
-                ['General' => 'bereichsübergreifend'],
-                ['Teaching' => 'Lehre/Studium'],
-                ['Research' => 'Forschung'],
-                ['Transfer' => 'Transfer/Third Mission']
-            ]
-        ],
-        'amb_organisationalContext' => [
-            'field_label' => 'Organisationskontext',
-            'options' => [
-                ['didacticSupport' => 'didaktischer Support'],
-                ['legalSupport' => 'rechtlicher Support'],
-                ['infrastructureSupport' => 'Support Infrastruktur'],
-                ['strategicSupport' => 'strategischer Support']
-            ]
-        ],
+        ]
+        /*,
         'amb_educationalLevel' => [
             'field_label' => 'Stufe im Bildungssystem',
             'options' => [
@@ -151,6 +134,7 @@ function amb_get_other_fields() {
                 ['https://w3id.org/kim/educationalLevel/level_C' => 'Fortbildung']
             ]
         ]
+        */
     ];
 }
 
@@ -163,7 +147,9 @@ function amb_get_other_fields() {
 // Globale Konfiguration der URLs für verschiedene JSON-Daten
 function amb_get_json_urls() {
     return [
+        'amb_area' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
         'amb_type' => 'https://hof-halle-wittenberg.github.io/vocabs/type/index.json',
+        'amb_organisationalContext' => 'https://hof-halle-wittenberg.github.io/vocabs/organisationalContext/index.json',
         'amb_learningResourceType' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
         'amb_audience' => 'https://vocabs.edu-sharing.net/w3id.org/edu-sharing/vocabs/dublin/educationalAudienceRole/index.json',
         'amb_hochschulfaechersystematik' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json'
@@ -187,6 +173,57 @@ function amb_get_all_external_values() {
 
     return $all_values;
 }
+
+
+function amb_get_all_external_values_narrower() {
+    $urls = amb_get_json_urls();
+    $all_values = [];
+
+    foreach ($urls as $key => $url) {
+        $values = amb_fetch_external_values($url);
+        if (!empty($values)) {
+            $all_values[$key] = $values;
+        }
+    }
+
+    return $all_values;
+}
+
+function amb_fetch_external_values($url) {
+    $response = wp_remote_get($url);
+    if (is_wp_error($response)) {
+        return [];
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    $field_label = $data['title']['de'] ?? 'Standard-Titel';
+    $concepts = $data['hasTopConcept'] ?? [];
+    $options = parse_concepts($concepts);
+
+    return [
+        'field_label' => $field_label,
+        'options' => $options
+    ];
+}
+
+function parse_concepts($concepts) {
+    $options = [];
+    foreach ($concepts as $concept) {
+        if (isset($concept['id']) && isset($concept['prefLabel']['de'])) {
+            $entry = [
+                $concept['id'] => $concept['prefLabel']['de']
+            ];
+            if (isset($concept['narrower'])) {
+                $entry['narrower'] = parse_concepts($concept['narrower']);
+            }
+            $options[] = $entry;
+        }
+    }
+    return $options;
+}
+
 
 
 
@@ -340,24 +377,28 @@ function amb_dido_display_defaults($field, $options) {
     $field_label = isset($all_fields[$field]['field_label']) ? $all_fields[$field]['field_label'] : $field;
 
     // Ausgabe der Default-Werte oder "Keine Auswahl"
-    if (isset($defaults[$field]) && $defaults[$field] !== '') {
-        $default_value = $defaults[$field];
-        $label = 'Unbekannte Auswahl';
+    if (isset($defaults[$field])) {
+        if ($defaults[$field] === 'deactivate') {
+          echo "<p>{$field_label}: <strong>Feld ausgeblendet</strong></p>";
+        } else {
+          $default_value = $defaults[$field];
+          $label = 'Unbekannte Auswahl';
 
-        // Überprüfe die Optionen und finde das passende Label
-        if (isset($all_fields[$field]['options'])) {
+          // Überprüfe die Optionen und finde das passende Label
+          if (isset($all_fields[$field]['options'])) {
             foreach ($all_fields[$field]['options'] as $option) {
-                if (isset($option[$default_value])) {
-                    $label = $option[$default_value];
-                    break;
-                }
+              if (isset($option[$default_value])) {
+                $label = $option[$default_value];
+                break;
+              }
             }
-        }
+          }
 
-        echo "<p>{$field_label}: <strong>" . esc_html($label) . "</strong></p>";
-    } else {
+          echo "<p>{$field_label}: <strong>" . esc_html($label) . "</strong></p>";
+        }
+      } else {
         echo "<p>{$field_label}: <strong>Keine Auswahl getroffen</strong></p>";
-    }
+      }
 }
 
 /**
@@ -369,12 +410,13 @@ function amb_dido_display_defaults($field, $options) {
  * @param array $stored_values Die gespeicherten Werte für die Checkboxen.
  */
 
+
 function generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
     // Falls kein Titel übergeben wurde, versuchen, den Titel aus den Optionen zu extrahieren
     if ($title === null && isset($options['field_label'])) {
         $title = $options['field_label'];
     }
-
+    //var_dump($options);
     echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
     echo '<div class="grid-container">';
     
@@ -396,6 +438,50 @@ function generate_checkbox_group_any($name, $options, $stored_values, $title = n
 
     echo '</div>';
 }
+
+/*
+function generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
+    $stored_ids = extract_ids_recursive($stored_values); // IDs der gespeicherten Werte extrahieren
+
+    if ($title === null && isset($options['field_label'])) {
+        $title = $options['field_label'];
+    }
+
+    echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
+    echo '<div class="grid-container">';
+
+    render_checkbox_group_recursive_any($name, $options['options'], $stored_ids);
+
+    echo '</div>';
+}
+
+*/
+
+function render_checkbox_group_recursive_any($name, $options, $stored_ids, $level = 0) {
+    foreach ($options as $option) {
+        foreach ($option as $id => $details) {
+            $label = $details['label'] ?? '[Label nicht verfügbar]';
+            $checked = in_array($id, $stored_ids) ? 'checked' : '';
+
+            // Checkbox für die aktuelle Ebene ausgeben
+            echo '<div class="grid-item components-base-control__field" style="margin-left: '.(20 * $level).'px;">';
+            echo '<span class="components-checkbox-control__input-container amb-control">';
+            echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input">';
+            if ($checked) {
+                echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
+            }
+            echo '</span>';
+            echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
+            echo '</div>';
+
+            // Rekursiver Aufruf für untergeordnete Optionen, falls vorhanden
+            if (!empty($details['narrower'])) {
+                render_checkbox_group_recursive_any($name, $details['narrower'], $stored_ids, $level + 1);
+            }
+        }
+    }
+}
+
 
 
 function generate_checkbox_group($title, $name, $options, $stored_values) {
@@ -444,6 +530,7 @@ function extract_ids_recursive($stored_values) {
     return $ids;
 }
 
+/*
 function render_checkbox_group_recursive($name, $options, $stored_ids, $is_narrower = false) {
     foreach ($options as $id => $details) {
         $checked = in_array($id, $stored_ids) ? 'checked' : '';
@@ -487,6 +574,35 @@ function render_checkbox_group_recursive($name, $options, $stored_ids, $is_narro
         echo '</div>';
     }
 }
+*/
+function render_checkbox_group_recursive($name, $options, $stored_ids, $level = 0) {
+    foreach ($options as $id => $details) {
+        $label = $details['label'] ?? '[Label nicht verfügbar]';  // Fallback für fehlende Labels
+        $checked = in_array($id, $stored_ids) ? 'checked' : '';
+
+        echo '<div class="grid-item components-base-control__field" style="margin-left: ' . (20 * $level) . 'px;">';
+        echo '<span class="components-checkbox-control__input-container amb-control">';
+        echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input">';
+        if ($checked) {
+            echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
+        }
+        echo '</span>';
+        echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
+
+        if (isset($details['narrower']) && is_array($details['narrower']) && count($details['narrower']) > 0) {
+            // Rekursiver Aufruf nur, wenn es gültige untergeordnete Optionen gibt
+            $expanded = $checked ? 'true' : 'false';
+            $collapse_class = $checked ? '' : 'collapsed';
+            echo '<button type="button" onclick="toggleNarrower(this);" class="amb-narrower ' . $collapse_class . '" aria-expanded="' . $expanded . '"></button>';
+            echo '<div class="narrower-container grid-container" style="display: ' . ($checked ? 'block' : 'none') . ';">';
+            render_checkbox_group_recursive($name, $details['narrower'], $stored_ids, $level + 1);
+            echo '</div>';
+        }
+        
+        echo '</div>';
+    }
+}
+
 
 /* Hilfsfunktion um ids aus Arrays zu extrahieren */ 
 function get_selected_ids($meta_field) {
@@ -527,25 +643,19 @@ function amb_dido_meta_box_callback($post) {
 
     // Generierung der Checkbox-Felder
     $defaults = get_option('amb_dido_defaults');
-    //$checkbox_options = amb_get_other_fields();
     $checkbox_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    // Zieht die Feldstruktur korrekt mit allen verfügbaren Ebenen
 
     foreach ($checkbox_options as $field => $data) {
-        $option_map = [
-            'field_label' => $data['field_label'],
-            'options' => []
-        ];
-        foreach ($data['options'] as $option_array) {
-            foreach ($option_array as $id => $label) {
-                $option_map['options'][] = [$id => $label];
-            }
-        }
-
         if (isset($defaults[$field]) && !empty($defaults[$field])) {
-            amb_dido_display_defaults($field, $option_map);
-        } else {
+            amb_dido_display_defaults($field, $data);
+        } 
+        /* elseif (isset($defaults[$field]) && $defaults[$field] == 'deactivate') {
+            // do nothing 
+        }*/ 
+        else {
             $stored_ids = get_selected_ids($field);  
-            generate_checkbox_group_any($field, $option_map, $stored_ids);
+            generate_checkbox_group_any($field, $data, $stored_ids);
         }
     }
 
@@ -569,13 +679,13 @@ function amb_dido_meta_box_callback($post) {
     $hochschulfaechersystematik_types = amb_get_hochschulfaechersystematik();
     $stored_hochschulfaechersystematik_types = get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: [];
     generate_checkbox_group('Welche Fächer betreffen den Inhalt?', 'amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-    
-    
+     
     // Hochschulfaechersystematik Checkbox-Gruppe mit Narrower
     $hochschulfaechersystematik_types = amb_get_hochschulfaechersystematik_with_narrower();
     $stored_hochschulfaechersystematik_types = get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: [];
     generate_checkbox_group_with_narrower('Welche Fächer betreffen den Inhalt?', 'amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-    */
+   */
+    
 }
 
 
