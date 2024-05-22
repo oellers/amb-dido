@@ -25,12 +25,13 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Einstellen von Standard-Werten und ausblenden dieser Felder im Editor
 - Optionen: Ausgabe von Metadaten im Frontend (unterhalb Content)
 - Optionen: Einstellen welche Metadaten im Frontend angezeigt werden sollen
-- Hook-Function und Shortcode für einbau beliebiger Metadaten im Frontend  
+- Hook-Function und Shortcode für einbau beliebiger Metadaten im Frontend
+- Integration eigener veröffentlichter Wertelisten/Vokabulare
 
 ## Features in Arbeit
-- Integration eigener veröffentlichter Wertelisten/Vokabulare
 - Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld.
-- Optionen: Ausgabe von Keywords, Autoren und Beschreibung im Content. 
+- Optionen: Ausgabe von Keywords, Autoren und Beschreibung im Content.
+- Integration von Mehrebenen-Vokabularen in die Standardfunktion zur Generierung der Metadatenfelder
 
 ## Features in Planung
 - Integration der Metadaten in die Wordpress Suchfunktion
