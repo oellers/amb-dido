@@ -37,6 +37,8 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Integration der Metadaten in die Wordpress Suchfunktion
 - Tooltips mit Beschreibungen der Werte
 - Anleitung zur Nutzung des Plugins und pflegen von Metadaten
+- Optionen: Standard-Wordpress-Felder für Keywords (tags) und Beschreibung (excerpt) nutzen statt Plugin-spezifischer
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
 - Optionen: Einstellung ob Metadatenprofil nur didaktische oder nur Organisationsressourcen berücksichtigen soll
+- Optionen: Zusätzliche Wertelisten aus Archiven abrufen und integrieren. 
