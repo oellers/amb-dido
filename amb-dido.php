@@ -151,6 +151,7 @@ function amb_get_json_urls() {
         'amb_area' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
         'amb_type' => 'https://hof-halle-wittenberg.github.io/vocabs/type/index.json',
         'amb_organisationalContext' => 'https://hof-halle-wittenberg.github.io/vocabs/organisationalContext/index.json',
+        'amb_didacticUseCase' => 'https://hof-halle-wittenberg.github.io/vocabs/didacticUseCase/index.json',
         'amb_learningResourceType' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
         'amb_audience' => 'https://vocabs.edu-sharing.net/w3id.org/edu-sharing/vocabs/dublin/educationalAudienceRole/index.json',
         'amb_hochschulfaechersystematik' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json'
