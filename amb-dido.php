@@ -125,7 +125,8 @@ function amb_get_other_fields() {
                 ['http://w3id.org/kim/conditionsOfAccess/login' => 'Anmeldung erforderlich']
             ]
         ]
-        /*,
+        /* wird bereits aus Archiv abgerufen
+        ,
         'amb_educationalLevel' => [
             'field_label' => 'Stufe im Bildungssystem',
             'options' => [
@@ -159,8 +160,8 @@ function amb_get_json_urls() {
 }
 
 
-
-function amb_get_all_external_values() {
+// veraltet: Alle Wertelisten abrufen, nur für erste Ebene
+function amb_get_all_external_values_broader() {
     $urls = amb_get_json_urls();
     $all_values = [];
 
@@ -175,7 +176,8 @@ function amb_get_all_external_values() {
 }
 
 
-function amb_get_all_external_values_narrower() {
+// Alle Wertelisten abrufen, incl. aller Ebenen 
+function amb_get_all_external_values() {
     $urls = amb_get_json_urls();
     $all_values = [];
 
@@ -225,10 +227,7 @@ function parse_concepts($concepts) {
 }
 
 
-
-
-
-// Verallgemeinert für erste Ebene
+// Externe Wertelisten, verallgemeinert für erste Ebene
 function amb_get_external_values($key, $field_label = null) {
     $urls = amb_get_json_urls();
 
@@ -264,108 +263,6 @@ function amb_get_external_values($key, $field_label = null) {
     ];
 }
 
-
-
-/* HCRT LearningResourceType */
-function amb_get_learning_resource_types() {
-    $response = wp_remote_get('https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json');
-    if (is_wp_error($response)) {
-        return [];
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-    $types = $data['hasTopConcept'] ?? [];
-    $options = [];
-
-    foreach ($types as $type) {
-        if (isset($type['id']) && isset($type['prefLabel']['de'])) {
-            $options[$type['id']] = $type['prefLabel']['de'];
-        }
-    }
-    asort($options);
-
-    return $options;
-}
-
-/* LRMI educationalAudienceRole */
-function amb_get_audience_roles() {
-    $response = wp_remote_get('https://vocabs.edu-sharing.net/w3id.org/edu-sharing/vocabs/dublin/educationalAudienceRole/index.json');
-    if (is_wp_error($response)) {
-        return [];
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-    $roles = $data['hasTopConcept'] ?? [];
-    $options = [];
-
-    foreach ($roles as $role) {
-        if (isset($role['id']) && isset($role['prefLabel']['de'])) {
-            $options[$role['id']] = $role['prefLabel']['de'];
-        }
-    }
-    asort($options);
-
-    return $options;
-}
-
-/* AMB hochschulfaechersystematik */
-function amb_get_hochschulfaechersystematik() {
-    $response = wp_remote_get('https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json');
-    if (is_wp_error($response)) {
-        return [];
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-    $roles = $data['hasTopConcept'] ?? [];
-    $options = [];
-
-    foreach ($roles as $role) {
-        if (isset($role['id']) && isset($role['prefLabel']['de'])) {
-            $options[$role['id']] = $role['prefLabel']['de'];
-        }
-    }
-    asort($options);
-    
-    return $options;
-}
-
-function amb_get_hochschulfaechersystematik_with_narrower() {
-    $response = wp_remote_get('https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json');
-    if (is_wp_error($response)) {
-        return [];
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-    $roles = $data['hasTopConcept'] ?? [];
-    $options = [];
-
-    foreach ($roles as $role) {
-        if (isset($role['id']) && isset($role['prefLabel']['de'])) {
-            $options[$role['id']] = [
-                'label' => $role['prefLabel']['de'],
-                'narrower' => isset($role['narrower']) ? array_reduce($role['narrower'], function($carry, $item) {
-                    if (isset($item['id']) && isset($item['prefLabel']['de'])) {
-                        $carry[$item['id']] = [
-                            'label' => $item['prefLabel']['de'],
-                            'narrower' => isset($item['narrower']) ? array_reduce($item['narrower'], function($carryInner, $itemInner) {
-                                if (isset($itemInner['id']) && isset($itemInner['prefLabel']['de'])) {
-                                    $carryInner[$itemInner['id']] = $itemInner['prefLabel']['de'];
-                                }
-                                return $carryInner;
-                            }, []) : []
-                        ];
-                    }
-                    return $carry;
-                }, []) : []
-            ];
-        }
-    }
-    return $options;
-}
 
 // Zugriff auf die Defaults und die entsprechenden Labels aus der Optionen-Konfiguration
 function amb_dido_display_defaults($field, $options) {
@@ -410,13 +307,86 @@ function amb_dido_display_defaults($field, $options) {
  * @param array $stored_values Die gespeicherten Werte für die Checkboxen.
  */
 
-
+// Zeigt erste und zweite Ebene eines Vokabulars an
 function generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
     // Falls kein Titel übergeben wurde, versuchen, den Titel aus den Optionen zu extrahieren
     if ($title === null && isset($options['field_label'])) {
         $title = $options['field_label'];
     }
-    //var_dump($options);
+    
+    $svg_check = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
+
+    echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
+    echo '<div class="grid-container">';
+    
+    foreach ($options['options'] as $option) {
+        foreach ($option as $id => $label) {
+            if (!isset($option['narrower'])) {
+                // Hauptoption ohne "narrower"-Unteroptionen oder falsche Struktur
+                $checked = in_array($id, $stored_values) ? 'checked' : '';
+                echo '<div class="grid-item components-base-control__field tbroad">';
+                echo '<span class="components-checkbox-control__input-container amb-control">';
+                echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input" onchange="toggleSVG(this)">';
+                if ($checked) {
+                    echo $svg_check;
+                }
+                echo '</span>';
+                echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
+                echo '</div>';
+            } elseif (isset($option['narrower']) && !is_array($label)) {
+                // Option mit "narrower"-Unteroptionen
+                $checked = in_array($id, $stored_values) ? 'checked' : '';
+                $collapse_class = $checked ? '' : 'collapsed';
+                $expanded = $checked ? 'true' : 'false';
+
+                echo '<div class="grid-item components-base-control__field tnarrow">';
+                echo '<span class="components-checkbox-control__input-container amb-control">';
+                echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input" onchange="toggleSVG(this)">';
+                if ($checked) {
+                    echo $svg_check;
+                }
+                echo '</span>';
+                echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
+                
+                // Erste Ebene von "narrower"-Unteroptionen anzeigen
+                echo '<button type="button" onclick="toggleNarrower(this);" class="amb-narrower ' . $collapse_class . '" aria-expanded="' . $expanded . '"></button>';
+                echo '<div class="narrower-container grid-container" style="display: ' . ($checked ? 'block' : 'none') . ';">';
+
+                foreach ($option['narrower'] as $narrower_option) {
+                    if (is_array($narrower_option)) {
+                        foreach ($narrower_option as $narrower_id => $narrower_label) {
+                            if (!is_array($narrower_label)) {
+                                $checked = in_array($narrower_id, $stored_values) ? 'checked' : '';
+                                echo '<div class="grid-item components-base-control__field tsub">';
+                                echo '<span class="components-checkbox-control__input-container amb-control">';
+                                echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($narrower_id) . '" ' . $checked . ' id="type_' . esc_attr($narrower_id) . '" class="components-checkbox-control__input" onchange="toggleSVG(this)">';
+                                if ($checked) {
+                                    echo $svg_check;
+                                }
+                                echo '</span>';
+                                echo '<label for="type_' . esc_attr($narrower_id) . '" class="label amb-control-label">' . esc_html($narrower_label) . '</label>';
+                                echo '</div>';
+                            }
+                        }
+                    }
+                }
+                echo '</div>'; // Ende der narrower-container
+                echo '</div>'; // Ende der grid-item tnarrow
+            }
+        }
+    }
+    
+    echo '</div>';
+}
+
+
+// veraltet: Zeigt nur erste Ebene an
+function generate_checkbox_group_any_broader($name, $options, $stored_values, $title = null) {
+    // Falls kein Titel übergeben wurde, versuchen, den Titel aus den Optionen zu extrahieren
+    if ($title === null && isset($options['field_label'])) {
+        $title = $options['field_label'];
+    }
+    var_dump($options);
     echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
     echo '<div class="grid-container">';
     
@@ -439,51 +409,8 @@ function generate_checkbox_group_any($name, $options, $stored_values, $title = n
     echo '</div>';
 }
 
-/*
-function generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
-    $stored_ids = extract_ids_recursive($stored_values); // IDs der gespeicherten Werte extrahieren
 
-    if ($title === null && isset($options['field_label'])) {
-        $title = $options['field_label'];
-    }
-
-    echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
-    echo '<div class="grid-container">';
-
-    render_checkbox_group_recursive_any($name, $options['options'], $stored_ids);
-
-    echo '</div>';
-}
-
-*/
-
-function render_checkbox_group_recursive_any($name, $options, $stored_ids, $level = 0) {
-    foreach ($options as $option) {
-        foreach ($option as $id => $details) {
-            $label = $details['label'] ?? '[Label nicht verfügbar]';
-            $checked = in_array($id, $stored_ids) ? 'checked' : '';
-
-            // Checkbox für die aktuelle Ebene ausgeben
-            echo '<div class="grid-item components-base-control__field" style="margin-left: '.(20 * $level).'px;">';
-            echo '<span class="components-checkbox-control__input-container amb-control">';
-            echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input">';
-            if ($checked) {
-                echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
-            }
-            echo '</span>';
-            echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
-            echo '</div>';
-
-            // Rekursiver Aufruf für untergeordnete Optionen, falls vorhanden
-            if (!empty($details['narrower'])) {
-                render_checkbox_group_recursive_any($name, $details['narrower'], $stored_ids, $level + 1);
-            }
-        }
-    }
-}
-
-
-
+// veraltet: Zeigt nur erste Ebene an
 function generate_checkbox_group($title, $name, $options, $stored_values) {
     echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
     echo '<div class="grid-container">';
@@ -502,105 +429,6 @@ function generate_checkbox_group($title, $name, $options, $stored_values) {
     }
 
     echo '</div>';
-}
-
-function generate_checkbox_group_with_narrower($title, $name, $options, $stored_values) {
-    echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
-    echo '<div class="grid-container">';
-    
-    // Extrahiere IDs aus den gespeicherten Werten
-    $stored_ids = extract_ids_recursive($stored_values);
-    
-    // Generiere die Checkbox-Gruppe rekursiv
-    render_checkbox_group_recursive($name, $options, $stored_ids);
-    
-    echo '</div>';
-}
-
-function extract_ids_recursive($stored_values) {
-    $ids = array();
-    foreach ($stored_values as $value) {
-        if (isset($value['id'])) {
-            $ids[] = $value['id'];
-        }
-        if (isset($value['narrower'])) {
-            $ids = array_merge($ids, extract_ids_recursive($value['narrower']));
-        }
-    }
-    return $ids;
-}
-
-/*
-function render_checkbox_group_recursive($name, $options, $stored_ids, $is_narrower = false) {
-    foreach ($options as $id => $details) {
-        $checked = in_array($id, $stored_ids) ? 'checked' : '';
-        $label = isset($details['label']) ? esc_html($details['label']) : null;
-
-        // Skip rendering if label is not defined
-        if ($label === null) {
-            continue;
-        }
-
-        echo '<div class="grid-item components-base-control__field">';
-        echo '<span class="components-checkbox-control__input-container amb-control">';
-        echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input" onchange="toggleSVG(this);">';
-        if ($checked) {
-            echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false">';
-            echo '<path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path>';
-            echo '</svg>';
-        }
-        echo '</span>';
-        echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . $label . '</label>';
-
-        if (!empty($details['narrower']) && is_array($details['narrower'])) {
-            // Skip empty narrower
-            $has_valid_narrower = false;
-            foreach ($details['narrower'] as $narrow_id => $narrow_details) {
-                if (isset($narrow_details['label'])) {
-                    $has_valid_narrower = true;
-                    break;
-                }
-            }
-            if ($has_valid_narrower) {
-                $expanded = $checked ? 'true' : 'false';
-                $collapse_class = $checked ? '' : 'collapsed';
-                echo '<button type="button" onclick="toggleNarrower(this);" class="amb-narrower ' . $collapse_class . '" aria-expanded="' . $expanded . '"></button>';
-                echo '<div class="narrower-container grid-container" style="display: ' . ($checked ? 'block' : 'none') . ';">';
-                render_checkbox_group_recursive($name, $details['narrower'], $stored_ids, true);
-                echo '</div>';
-            }
-        }
-        
-        echo '</div>';
-    }
-}
-*/
-function render_checkbox_group_recursive($name, $options, $stored_ids, $level = 0) {
-    foreach ($options as $id => $details) {
-        $label = $details['label'] ?? '[Label nicht verfügbar]';  // Fallback für fehlende Labels
-        $checked = in_array($id, $stored_ids) ? 'checked' : '';
-
-        echo '<div class="grid-item components-base-control__field" style="margin-left: ' . (20 * $level) . 'px;">';
-        echo '<span class="components-checkbox-control__input-container amb-control">';
-        echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input">';
-        if ($checked) {
-            echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
-        }
-        echo '</span>';
-        echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
-
-        if (isset($details['narrower']) && is_array($details['narrower']) && count($details['narrower']) > 0) {
-            // Rekursiver Aufruf nur, wenn es gültige untergeordnete Optionen gibt
-            $expanded = $checked ? 'true' : 'false';
-            $collapse_class = $checked ? '' : 'collapsed';
-            echo '<button type="button" onclick="toggleNarrower(this);" class="amb-narrower ' . $collapse_class . '" aria-expanded="' . $expanded . '"></button>';
-            echo '<div class="narrower-container grid-container" style="display: ' . ($checked ? 'block' : 'none') . ';">';
-            render_checkbox_group_recursive($name, $details['narrower'], $stored_ids, $level + 1);
-            echo '</div>';
-        }
-        
-        echo '</div>';
-    }
 }
 
 
@@ -658,105 +486,12 @@ function amb_dido_meta_box_callback($post) {
             generate_checkbox_group_any($field, $data, $stored_ids);
         }
     }
-
-    /*
-    $audience_types = amb_get_external_values('amb_audience');
-    $stored_audience_types = get_selected_ids('amb_audience'); 
-    generate_checkbox_group_any('amb_audience', $audience_types, $stored_audience_types);
-
-
-    $learning_resource_types = amb_get_external_values('amb_learningResourceType');
-    $stored_learning_resource_types = get_selected_ids('amb_learningResourceType'); 
-    generate_checkbox_group_any('amb_learningResourceType', $learning_resource_types, $stored_learning_resource_types);
-
-    $hochschulfaechersystematik_types = amb_get_external_values('amb_hochschulfaechersystematik');
-    $stored_hochschulfaechersystematik_types = get_selected_ids('amb_hochschulfaechersystematik'); 
-    generate_checkbox_group_any('amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-    */
-
-    // Hochschulfaechersystematik Checkbox-Gruppe
-    /* veraltet:
-    $hochschulfaechersystematik_types = amb_get_hochschulfaechersystematik();
-    $stored_hochschulfaechersystematik_types = get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: [];
-    generate_checkbox_group('Welche Fächer betreffen den Inhalt?', 'amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-     
-    // Hochschulfaechersystematik Checkbox-Gruppe mit Narrower
-    $hochschulfaechersystematik_types = amb_get_hochschulfaechersystematik_with_narrower();
-    $stored_hochschulfaechersystematik_types = get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: [];
-    generate_checkbox_group_with_narrower('Welche Fächer betreffen den Inhalt?', 'amb_hochschulfaechersystematik', $hochschulfaechersystematik_types, $stored_hochschulfaechersystematik_types);
-   */
     
-}
-
-
-
-// Hilfsfunktion zum Durchsuchen und Hinzufügen verschachtelter Werte
-function find_label_and_add($type_id, $available_types, &$to_save) {
-    if (isset($available_types[$type_id])) {
-        $to_save[] = [
-            'id' => $type_id,
-            'prefLabel' => ['de' => $available_types[$type_id]['label']],
-            'type' => 'Concept'
-        ];
-        return true;
-    }
-    foreach ($available_types as $option_id => $details) {
-        if (!empty($details['narrower'])) {
-            if (find_label_and_add($type_id, $details['narrower'], $to_save)) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 /**
  * Speichert die Post-Metadaten.
  */
-// Generische Hilfs-Funktion zum Speichern von Checkbox-Daten
-function save_checkbox_data($post_id, $post_key, $fetch_function, $meta_key) {
-    if (isset($_POST[$post_key])) {
-        $selected_types = $_POST[$post_key];
-        $available_types = $fetch_function();  // Funktion zum Abrufen der Optionen aufrufen
-        $to_save = [];
-
-        foreach ($selected_types as $type_id) {
-            if (isset($available_types[$type_id])) {
-                $to_save[] = [
-                    'id' => $type_id,
-                    'prefLabel' => ['de' => $available_types[$type_id]],
-                    'type' => 'Concept'
-                ];
-            }
-        }
-
-        update_post_meta($post_id, $meta_key, $to_save);
-    } else {
-        delete_post_meta($post_id, $meta_key);
-    }
-}
-
-function save_checkbox_data_with_narrower($post_id, $post_key, $fetch_function, $meta_key) {
-    if (isset($_POST[$post_key])) {
-        $selected_types = $_POST[$post_key];
-        $available_types = $fetch_function();
-        $to_save = [];
-
-        foreach ($selected_types as $type_id) {
-            find_label_and_add($type_id, $available_types, $to_save);
-        }
-
-        // Prüfen ob `to_save` nicht leer ist, bevor es gespeichert wird
-        if (!empty($to_save)) {
-            update_post_meta($post_id, $meta_key, $to_save);
-        } else {
-            delete_post_meta($post_id, $meta_key);
-        }
-    } else {
-        delete_post_meta($post_id, $meta_key);
-    }
-}
-
 
 function amb_dido_save_post_meta($post_id) {
     // Überprüfen der Berechtigungen
@@ -788,48 +523,63 @@ function amb_dido_save_post_meta($post_id) {
         }
     }
 
+    // Alle Wertelisten speichern
+    save_all_checkbox_data($post_id);
+}
 
-    // Speicherung der hartkodierten Wertelisten-Auswahl
-    $checkbox_options = amb_get_other_fields();
-    foreach ($checkbox_options as $field_key => $field_data) {
+function save_all_checkbox_data($post_id) {
+    // Alle verfügbaren externen Werte abrufen
+    $all_options = amb_get_all_external_values();
+
+    if (empty($all_options)) {
+        return;
+    }
+
+    // Rekursive Funktion zur Suche und Hinzufügung von Labels
+    function find_label_and_add($type_id, $options, &$to_save) {
+        foreach ($options as $option) {
+            foreach ($option as $id => $label) {
+                if ($id == $type_id && !is_array($label)) {
+                    $to_save[] = [
+                        'id' => $type_id,
+                        'prefLabel' => ['de' => $label],
+                        'type' => 'Concept'
+                    ];
+                    return true;
+                } elseif (isset($option['narrower']) && is_array($option['narrower'])) {
+                    if (find_label_and_add($type_id, $option['narrower'], $to_save)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // Durch alle Felder iterieren und die Werte speichern
+    foreach ($all_options as $field_key => $field_data) {
         if (isset($_POST[$field_key])) {
             $selected_options = $_POST[$field_key];
-            $option_map = [];
-
-            // Innere Schleife zur Zuweisung der IDs zu Labels
-            foreach ($field_data['options'] as $option) {
-                foreach ($option as $id => $label) {
-                    $option_map[$id] = $label;
-                }
-            }
-
-            // Liste zum Speichern vorbereiten
             $to_save = [];
-            foreach ($selected_options as $option_id) {
-                if (isset($option_map[$option_id])) {
-                    $to_save[] = [
-                        'id' => $option_id,
-                        'prefLabel' => ['de' => $option_map[$option_id]],
-                        'type' => 'concept'
-                    ];
-                }
+
+            foreach ($selected_options as $type_id) {
+                find_label_and_add($type_id, $field_data['options'], $to_save);
             }
 
-            // Meta-Daten des Beitrags speichern
-            update_post_meta($post_id, $field_key, $to_save);
+            // Prüfen, ob `to_save` nicht leer ist, bevor es gespeichert wird
+            if (!empty($to_save)) {
+                update_post_meta($post_id, $field_key, $to_save);
+            } else {
+                delete_post_meta($post_id, $field_key);
+            }
         } else {
-            // Meta-Daten löschen, wenn keine Optionen ausgewählt sind
             delete_post_meta($post_id, $field_key);
         }
     }
-
-    // Aufruf der generischen Funktion für verschiedene Checkbox-Felder
-    save_checkbox_data($post_id, 'amb_learningResourceType', 'amb_get_learning_resource_types', 'amb_learningResourceType');
-    save_checkbox_data($post_id, 'amb_audience', 'amb_get_audience_roles', 'amb_audience');
-    save_checkbox_data_with_narrower($post_id, 'amb_hochschulfaechersystematik', 'amb_get_hochschulfaechersystematik_with_narrower', 'amb_hochschulfaechersystematik');
-
-    
 }
+
+
+
 
 
 // creator-Objekte vorbereiten

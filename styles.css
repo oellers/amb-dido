@@ -38,7 +38,7 @@ Plugin: AMB-DiDo
 }
 
 svg.components-checkbox-control__checked, svg.components-checkbox-control__indeterminate {
-        top: calc(50% - 12px);
+        top: -2px;
 }
 
 
