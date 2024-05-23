@@ -38,6 +38,7 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 ## Features in Planung
 - Optimierung: Integration der Metadaten in die Wordpress Suchfunktion
 - Editor: Tooltips mit Beschreibungen der Werte
+- Frontend: Werte aus Vokabularen klickbar machen und in Ergebnisliste (metafield archive) darstellen
 - Optionen: Anleitung zur Nutzung des Plugins und pflegen von Metadaten 
 - Optionen: Standard-Wordpress-Felder für Keywords (tags) und Beschreibung (excerpt) nutzen statt Plugin-spezifischer
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
