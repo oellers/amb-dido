@@ -28,11 +28,12 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Frontend: Hook-Function und Shortcode für einbau beliebiger Metadaten im Frontend
 - Optimierung: Integration eigener veröffentlichter Wertelisten/Vokabulare
 - Optionen: bestimmte Felder deaktivieren statt Standardwert festzulegen.
+- Optimierung: Integration von Mehrebenen-Vokabularen in die Standardfunktion zur Generierung der Metadatenfelder
 
 ## Features in Arbeit
 - Editor/Minor: Creator-Feld als Wordpress-Taxonomie integrieren statt Freifeld.
 - Frontend: Ausgabe von Keywords, Autoren und Beschreibung im Frontend.
-- Optimierung: Integration von Mehrebenen-Vokabularen in die Standardfunktion zur Generierung der Metadatenfelder
+- Optionen: Zusätzliche selbstgewählte Wertelisten aus Archiven abrufen und integrieren. 
 
 ## Features in Planung
 - Optimierung: Integration der Metadaten in die Wordpress Suchfunktion
@@ -41,4 +42,4 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Standard-Wordpress-Felder für Keywords (tags) und Beschreibung (excerpt) nutzen statt Plugin-spezifischer
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
-- Optionen: Zusätzliche selbstgewählte Wertelisten aus Archiven abrufen und integrieren. 
+
