@@ -622,8 +622,7 @@ function amb_dido_add_json_ld_to_header() {
         $creators = explode(',', get_post_meta($post->ID, 'amb_creator', true));
 
         // JSON Elemente zusammenstellen
-        $amb_data = [
-            'type' => get_post_meta($post->ID, 'amb_type', true) ?: $defaults['amb_type'] ?: ['LearningResource'],
+        $amb_data_core = [
             'description' => get_post_meta($post->ID, 'amb_description', true),
             'creator' => generate_creator_objects($creators),
             'keywords' => !empty($keywords) ? $keywords : '',
@@ -631,7 +630,10 @@ function amb_dido_add_json_ld_to_header() {
             'publisher' => get_bloginfo('name'),
             'isAccessibleForFree' => get_post_meta($post->ID, 'amb_isAccessibleForFree', true) ?: $defaults['amb_isAccessibleForFree'] ?: 'true',
             'license' => get_post_meta($post->ID, 'amb_license', true) ?: $defaults['amb_license'],
-            'conditionsOfAccess' => get_post_meta($post->ID, 'amb_conditionsOfAccess', true) ?: $defaults['amb_conditionsOfAccess'],
+            'conditionsOfAccess' => get_post_meta($post->ID, 'amb_conditionsOfAccess', true) ?: $defaults['amb_conditionsOfAccess']
+        ];
+        $amb_data = [
+            'type' => get_post_meta($post->ID, 'amb_type', true) ?: $defaults['amb_type'] ?: ['LearningResource'],
             'area' => get_post_meta($post->ID, 'amb_area', true) ?: $defaults['amb_area'],
             'learningResourceType' => get_post_meta($post->ID, 'amb_learningResourceType', true) ?: $defaults['amb_learningResourceType'],
             'audience' => get_post_meta($post->ID, 'amb_audience', true) ?: $defaults['amb_audience'],
@@ -643,36 +645,50 @@ function amb_dido_add_json_ld_to_header() {
 
         // Kombinieren der Felder "aboutSubject" und "aboutContext"
         $about = [];
-        if ($amb_data['aboutSubject']) {
-            $about[] = ["type" => "Concept", "name" => $amb_data['aboutSubject']];
+
+        function createConceptArray($concepts) {
+            $result = [];
+            foreach ($concepts as $concept) {
+                $result[] = [
+                    "id" => $concept['id'],
+                    "prefLabel" => ["de" => $concept['prefLabel']['de']],
+                    "type" => "concept"
+                ];
+            }
+            return $result;
         }
-        if ($amb_data['aboutContext']) {
-            $about[] = ["type" => "Concept", "name" => $amb_data['aboutContext']];
+
+        if (!empty($amb_data['aboutSubject'])) {
+            $about[] = createConceptArray($amb_data['aboutSubject']);
         }
-        if ($amb_data['aboutUseCase']) {
-            $about[] = ["type" => "Concept", "name" => $amb_data['aboutUseCase']];
+        if (!empty($amb_data['aboutContext'])) {
+            $about[] = createConceptArray($amb_data['aboutContext']);
         }
+        if (!empty($amb_data['aboutUseCase'])) {
+            $about[] = createConceptArray($amb_data['aboutUseCase']);
+        }
+
 
 
         // JSON-LD-Struktur vorbereiten
         $json_ld_data = [
             "@context" => ["https://w3id.org/kim/amb/context.jsonld", "https://schema.org", ["@language" => "de"]],
             "id" => get_permalink($post->ID),
-            "type" => $amb_data['type'],
-            "creator" => $amb_data['creator'],
-            "name" => get_the_title($post),
-            "description" => $amb_data['description'],
-            "keywords" => $amb_data['keywords'],
-            "area" => $amb_data['area'],
-            "inLanguage" => $amb_data['inLanguage'],
-            "image" => get_the_post_thumbnail_url($post, 'full'),
             "dateCreated" => get_the_date('c', $post),
             "datePublished" => get_the_date('c', $post),
             "dateModified" => get_the_modified_date('c', $post),
             "publisher" => [["type" => "Organization", "name" => $amb_data['publisher']]],
-            "isAccessibleForFree" => filter_var($amb_data['isAccessibleForFree'], FILTER_VALIDATE_BOOLEAN),
-            "license" => ["id" => $amb_data['license']],
-            "conditionsOfAccess" => ["id" => $amb_data['conditionsOfAccess'], "type" => "Concept"],
+            "creator" => $amb_data_core['creator'],
+            "name" => get_the_title($post),
+            "description" => $amb_data_core['description'],
+            "keywords" => $amb_data_core['keywords'],
+            "image" => get_the_post_thumbnail_url($post, 'full'),
+            "inLanguage" => $amb_data_core['inLanguage'],
+            "license" => ["id" => $amb_data_core['license']],
+            "isAccessibleForFree" => filter_var($amb_data_core['isAccessibleForFree'], FILTER_VALIDATE_BOOLEAN),
+            "conditionsOfAccess" => ["id" => $amb_data_core['conditionsOfAccess'], "type" => "Concept"],
+            "area" => $amb_data['area'],    
+            "type" => $amb_data['type'],   
             "learningResourceType" => $amb_data['learningResourceType'], 
             "audience" => $amb_data['audience'],
             "educationalLevel" => $amb_data['educationalLevel'],
