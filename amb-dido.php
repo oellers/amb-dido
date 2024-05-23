@@ -643,7 +643,7 @@ function amb_dido_add_json_ld_to_header() {
             'aboutUseCase' => get_post_meta($post->ID, 'amb_didacticUseCase', true) ?: $defaults['amb_didacticUseCase']
         ];
 
-        // Kombinieren der Felder "aboutSubject" und "aboutContext"
+        // Kombinieren der Felder "aboutSubject" und "aboutContext" und "aboutUseCase"
         $about = [];
 
         function createConceptArray($concepts) {
@@ -684,7 +684,7 @@ function amb_dido_add_json_ld_to_header() {
             "keywords" => $amb_data_core['keywords'],
             "image" => get_the_post_thumbnail_url($post, 'full'),
             "inLanguage" => $amb_data_core['inLanguage'],
-            "license" => ["id" => $amb_data_core['license']],
+            "license" => $amb_data_core['license'],
             "isAccessibleForFree" => filter_var($amb_data_core['isAccessibleForFree'], FILTER_VALIDATE_BOOLEAN),
             "conditionsOfAccess" => ["id" => $amb_data_core['conditionsOfAccess'], "type" => "Concept"],
             "area" => $amb_data['area'],    
