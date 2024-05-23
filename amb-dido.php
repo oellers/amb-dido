@@ -637,7 +637,8 @@ function amb_dido_add_json_ld_to_header() {
             'audience' => get_post_meta($post->ID, 'amb_audience', true) ?: $defaults['amb_audience'],
             'educationalLevel' => get_post_meta($post->ID, 'amb_educationalLevel', true) ?: $defaults['amb_educationalLevel'],
             'aboutSubject' => get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: $defaults['amb_hochschulfaechersystematik'],
-            'aboutContext' => get_post_meta($post->ID, 'amb_organisationalContext', true) ?: $defaults['amb_organisationalContext']
+            'aboutContext' => get_post_meta($post->ID, 'amb_organisationalContext', true) ?: $defaults['amb_organisationalContext'],
+            'aboutUseCase' => get_post_meta($post->ID, 'amb_didacticUseCase', true) ?: $defaults['amb_didacticUseCase']
         ];
 
         // Kombinieren der Felder "aboutSubject" und "aboutContext"
@@ -647,6 +648,9 @@ function amb_dido_add_json_ld_to_header() {
         }
         if ($amb_data['aboutContext']) {
             $about[] = ["type" => "Concept", "name" => $amb_data['aboutContext']];
+        }
+        if ($amb_data['aboutUseCase']) {
+            $about[] = ["type" => "Concept", "name" => $amb_data['aboutUseCase']];
         }
 
 
