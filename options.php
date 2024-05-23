@@ -152,8 +152,10 @@ function amb_dido_default_field_callback($args) {
   echo "<option value='deactivate'" . ($options[$args['id']] === 'deactivate' ? ' selected="selected"' : '') . ">--Feld ausblenden--</option>"; // Option "Feld ausblenden" hinzufügen
   foreach ($args['options'] as $option_array) {
     foreach ($option_array as $id => $label) {
-      $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
-      echo "<option value='$id' $selected>$label</option>";
+        if(!is_array($label)) {
+          $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
+          echo "<option value='$id' $selected>$label</option>";
+      }
     }
   }
   echo "</select>";
