@@ -49,7 +49,11 @@ function show_post_metadata() {
             if (!empty($metadata)) {
                 $output .= '<h4>' . esc_html($info['field_label']) . ':</h4><ul>';
                 foreach ($metadata as $item) {
-                    $output .= '<li>' . esc_html($item['prefLabel']['de']) . '</li>';
+                    if (isset($item['prefLabel']['de'])) {
+                        $label = esc_html($item['prefLabel']['de']);
+                        $search_url = esc_url(add_query_arg('s', urlencode("$key: $label"), home_url('/')));
+                        $output .= '<li><a href="' . $search_url . '">' . $label . '</a></li>';
+                    }
                 }
                 $output .= '</ul>';
             }
@@ -59,6 +63,7 @@ function show_post_metadata() {
     $output .= '</div>';
     return $output;
 }
+
 
 
 /** 
@@ -83,11 +88,15 @@ function show_amb_metadata($meta_key) {
     if (is_array($metadata)) {
         foreach ($metadata as $item) {
             if (isset($item['prefLabel']['de'])) {
-                echo '<li>' . esc_html($item['prefLabel']['de']) . '</li>';
+                $label = esc_html($item['prefLabel']['de']);
+                $search_url = esc_url(add_query_arg('s', urlencode("$meta_key: $label"), home_url('/')));
+                echo '<li><a href="' . $search_url . '">' . $label . '</a></li>';
             }
         }
     } else {
-        echo '<li>' . esc_html($metadata) . '</li>';
+        $label = esc_html($metadata);
+        $search_url = esc_url(add_query_arg('s', urlencode("$meta_key: $label"), home_url('/')));
+        echo '<li><a href="' . $search_url . '">' . $label . '</a></li>';
     }
 
     echo '</ul></div>';
@@ -133,11 +142,15 @@ function show_amb_metadata_shortcode($atts) {
             if (is_array($metadata)) {
                 foreach ($metadata as $item) {
                     if (isset($item['prefLabel']['de'])) {
-                        $output .= '<li>' . esc_html($item['prefLabel']['de']) . '</li>';
+                        $label = esc_html($item['prefLabel']['de']);
+                        $search_url = esc_url(add_query_arg('s', urlencode("$field: $label"), home_url('/')));
+                        $output .= '<li><a href="' . $search_url . '">' . $label . '</a></li>';
                     }
                 }
             } else {
-                $output .= '<li>' . esc_html($metadata) . '</li>';
+                $label = esc_html($metadata);
+                $search_url = esc_url(add_query_arg('s', urlencode("$field: $label"), home_url('/')));
+                $output .= '<li><a href="' . $search_url . '">' . $label . '</a></li>';
             }
 
             $output .= '</ul></div>';

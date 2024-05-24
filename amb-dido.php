@@ -12,9 +12,10 @@
 /** 
  *  Features und Funktionen laden 
  * */
-include_once(plugin_dir_path( __FILE__ ) . 'metabox.php');
-include_once(plugin_dir_path( __FILE__ ) . 'frontend.php');
-require_once(plugin_dir_path( __FILE__ ) . 'options.php');
+include_once(plugin_dir_path( __FILE__ ) . 'metabox.php');  // Weitere Metaboxen
+include_once(plugin_dir_path( __FILE__ ) . 'frontend.php'); // Frontend-Darstellung
+include_once(plugin_dir_path( __FILE__ ) . 'search.php');   // Suchfunktionen
+require_once(plugin_dir_path( __FILE__ ) . 'options.php');  // Plugin-Einstellungen
 
 
 /**
@@ -52,6 +53,8 @@ add_action('admin_init', 'amb_dido_register_settings');         // Optionen regi
 add_action('add_meta_boxes', 'amb_dido_add_custom_box');    // Felder erzeugen
 add_action('save_post', 'amb_dido_save_post_meta');         // Werte speichern
 add_action('wp_head', 'amb_dido_add_json_ld_to_header');    // JSON schreiben
+
+
 
 
 
