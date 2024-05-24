@@ -15,7 +15,7 @@
 }
 
 .amb-metadata-box ul {
-    list-style-type: none; 
+    list-style-type: none !important; 
     padding: 0; 
     margin: 0; 
     display: flex; 
