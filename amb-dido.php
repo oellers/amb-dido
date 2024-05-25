@@ -103,14 +103,16 @@ function amb_get_other_fields() {
                 ['de' => 'Deutsch'],
                 ['en' => 'English'],
                 ['fr' => 'Français']
-            ]
+            ],
+            'amb_key' => 'inLanguage'
         ],
         'amb_isAccessibleForFree' => [
             'field_label' => 'Kostenfreier Zugang',
             'options' => [
                 ['true' => 'Ja'],
                 ['false' => 'Nein']
-            ]
+            ],
+            'amb_key' => 'isAccessibleForFree'
         ],
         'amb_license' => [
             'field_label' => 'Lizenz des Inhalts',
@@ -119,26 +121,18 @@ function amb_get_other_fields() {
                 ['http://creativecommons.org/licenses/by-sa/4.0/legalcode.de' => 'CC BY-SA 4.0 Gleiche Bedingungen '],
                 ['https://creativecommons.org/licenses/by-nc/4.0/legalcode.de' => 'CC BY-NC 4.0 Nichtkommmerziell'],
                 ['https://www.gnu.org/licenses/gpl-3.0.xml' => 'GNU GPL 3 Software']
-            ]
+            ],
+            'amb_key' => 'license'
         ],
         'amb_conditionsOfAccess' => [
             'field_label' => 'Zugangsbedingungen',
             'options' => [
                 ['http://w3id.org/kim/conditionsOfAccess/no_login' => 'Keine Anmeldung erforderlich'],
                 ['http://w3id.org/kim/conditionsOfAccess/login' => 'Anmeldung erforderlich']
-            ]
+            ],
+            'amb_key' => 'license'
         ]
-        /* wird bereits aus Archiv abgerufen
-        ,
-        'amb_educationalLevel' => [
-            'field_label' => 'Stufe im Bildungssystem',
-            'options' => [
-                ['https://w3id.org/kim/educationalLevel/level_A' => 'Hochschule'],
-                ['https://w3id.org/kim/educationalLevel/level_B' => 'Vorbereitungsdienst'],
-                ['https://w3id.org/kim/educationalLevel/level_C' => 'Fortbildung']
-            ]
-        ]
-        */
+        
     ];
 }
 
@@ -151,43 +145,45 @@ function amb_get_other_fields() {
 // Globale Konfiguration der URLs für verschiedene JSON-Daten
 function amb_get_json_urls() {
     return [
-        'amb_area' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
-        'amb_type' => 'https://hof-halle-wittenberg.github.io/vocabs/type/index.json',
-        'amb_organisationalContext' => 'https://hof-halle-wittenberg.github.io/vocabs/organisationalContext/index.json',
-        'amb_didacticUseCase' => 'https://hof-halle-wittenberg.github.io/vocabs/didacticUseCase/index.json',
-        'amb_learningResourceType' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
-        //'amb_audience' => 'https://vocabs.edu-sharing.net/w3id.org/edu-sharing/vocabs/dublin/educationalAudienceRole/index.json',
-        'amb_audience' => 'https://hof-halle-wittenberg.github.io/vocabs/audience/index.json',
-        'amb_hochschulfaechersystematik' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json'
-        
+        'amb_area' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
+            'amb_key' => 'area'
+        ],
+        'amb_type' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/type/index.json',
+            'amb_key' => 'type'
+        ],
+        'amb_organisationalContext' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/organisationalContext/index.json',
+            'amb_key' => 'about'
+        ],
+        'amb_didacticUseCase' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/didacticUseCase/index.json',
+            'amb_key' => 'about'
+        ],
+        'amb_learningResourceType' => [
+            'url' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
+            'amb_key' => 'learningResourceType'
+        ],
+        'amb_audience' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/audience/index.json',
+            'amb_key' => 'audience'
+        ],
+        'amb_hochschulfaechersystematik' => [
+            'url' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json',
+            'amb_key' => 'about'
+        ]        
 
     ];
 }
 
 
-// veraltet: Alle Wertelisten abrufen, nur für erste Ebene
-function amb_get_all_external_values_broader() {
-    $urls = amb_get_json_urls();
-    $all_values = [];
-
-    foreach ($urls as $key => $url) {
-        $values = amb_get_external_values($key);
-        if (!empty($values)) {
-            $all_values[$key] = $values;
-        }
-    }
-
-    return $all_values;
-}
-
-
-// Alle Wertelisten abrufen, incl. aller Ebenen 
 function amb_get_all_external_values() {
     $urls = amb_get_json_urls();
     $all_values = [];
 
-    foreach ($urls as $key => $url) {
-        $values = amb_fetch_external_values($url);
+    foreach ($urls as $key => $url_data) {
+        $values = amb_fetch_external_values($url_data['url'], $key, $url_data['amb_key']);
         if (!empty($values)) {
             $all_values[$key] = $values;
         }
@@ -196,7 +192,7 @@ function amb_get_all_external_values() {
     return $all_values;
 }
 
-function amb_fetch_external_values($url) {
+function amb_fetch_external_values($url, $key, $amb_key) {
     $response = wp_remote_get($url);
     if (is_wp_error($response)) {
         return [];
@@ -211,7 +207,8 @@ function amb_fetch_external_values($url) {
 
     return [
         'field_label' => $field_label,
-        'options' => $options
+        'options' => $options,
+        'amb_key' => $amb_key
     ];
 }
 
@@ -231,6 +228,21 @@ function parse_concepts($concepts) {
     return $options;
 }
 
+
+// veraltet: Alle Wertelisten abrufen, nur für erste Ebene
+function amb_get_all_external_values_broader() {
+    $urls = amb_get_json_urls();
+    $all_values = [];
+
+    foreach ($urls as $key => $url) {
+        $values = amb_get_external_values($key);
+        if (!empty($values)) {
+            $all_values[$key] = $values;
+        }
+    }
+
+    return $all_values;
+}
 
 // Externe Wertelisten, verallgemeinert für erste Ebene
 function amb_get_external_values($key, $field_label = null) {
@@ -534,7 +546,8 @@ function amb_dido_save_post_meta($post_id) {
 
 function save_all_checkbox_data($post_id) {
     // Alle verfügbaren externen Werte abrufen
-    $all_options = amb_get_all_external_values();
+    // $all_options = amb_get_all_external_values();
+    $all_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
 
     if (empty($all_options)) {
         return;
@@ -605,12 +618,12 @@ function generate_creator_objects($creators) {
 function amb_dido_add_json_ld_to_header() {
     if (is_singular(get_option('amb_dido_post_types', []))) {
         global $post;
-        
-        // Voreinstellungen aus Optionseite rufen                
+
+        // Voreinstellungen aus Optionseite rufen
         $defaults = get_option('amb_dido_defaults');
 
-        // Hartkodierte Felder rufen
-        $fields = amb_get_other_fields();
+        // Alle Felder (hartkodiert und extern) abrufen
+        $all_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
 
         // Keywords auslesen
         $terms = get_the_terms($post->ID, 'ambkeywords');
@@ -622,7 +635,7 @@ function amb_dido_add_json_ld_to_header() {
             }
         }
 
-        // creator Werte holen 
+        // creator Werte holen
         $creators = explode(',', get_post_meta($post->ID, 'amb_creator', true));
 
         // JSON Elemente zusammenstellen
@@ -630,81 +643,54 @@ function amb_dido_add_json_ld_to_header() {
             'description' => get_post_meta($post->ID, 'amb_description', true),
             'creator' => generate_creator_objects($creators),
             'keywords' => !empty($keywords) ? $keywords : '',
-            'inLanguage' => get_post_meta($post->ID, 'amb_inLanguage', true) ?: $defaults['amb_inLanguage'] ?: ['de'],
             'publisher' => get_bloginfo('name'),
-            'isAccessibleForFree' => get_post_meta($post->ID, 'amb_isAccessibleForFree', true) ?: $defaults['amb_isAccessibleForFree'] ?: 'true',
-            'license' => get_post_meta($post->ID, 'amb_license', true) ?: $defaults['amb_license'],
-            'conditionsOfAccess' => get_post_meta($post->ID, 'amb_conditionsOfAccess', true) ?: $defaults['amb_conditionsOfAccess']
-        ];
-        $amb_data = [
-            'type' => get_post_meta($post->ID, 'amb_type', true) ?: $defaults['amb_type'] ?: ['LearningResource'],
-            'area' => get_post_meta($post->ID, 'amb_area', true) ?: $defaults['amb_area'],
-            'learningResourceType' => get_post_meta($post->ID, 'amb_learningResourceType', true) ?: $defaults['amb_learningResourceType'],
-            'audience' => get_post_meta($post->ID, 'amb_audience', true) ?: $defaults['amb_audience'],
-            'educationalLevel' => get_post_meta($post->ID, 'amb_educationalLevel', true) ?: $defaults['amb_educationalLevel'],
-            'aboutSubject' => get_post_meta($post->ID, 'amb_hochschulfaechersystematik', true) ?: $defaults['amb_hochschulfaechersystematik'],
-            'aboutContext' => get_post_meta($post->ID, 'amb_organisationalContext', true) ?: $defaults['amb_organisationalContext'],
-            'aboutUseCase' => get_post_meta($post->ID, 'amb_didacticUseCase', true) ?: $defaults['amb_didacticUseCase']
         ];
 
-        // Kombinieren der Felder "aboutSubject" und "aboutContext" und "aboutUseCase"
-        $about = [];
-
-        function createConceptArray($concepts) {
-            $result = [];
-            foreach ($concepts as $concept) {
-                $result[] = [
-                    "id" => $concept['id'],
-                    "prefLabel" => ["de" => $concept['prefLabel']['de']],
-                    "type" => "concept"
-                ];
-            }
-            return $result;
-        }
-
-        if (!empty($amb_data['aboutSubject'])) {
-            $about[] = createConceptArray($amb_data['aboutSubject']);
-        }
-        if (!empty($amb_data['aboutContext'])) {
-            $about[] = createConceptArray($amb_data['aboutContext']);
-        }
-        if (!empty($amb_data['aboutUseCase'])) {
-            $about[] = createConceptArray($amb_data['aboutUseCase']);
-        }
-
-
-
-        // JSON-LD-Struktur vorbereiten
         $json_ld_data = [
             "@context" => ["https://w3id.org/kim/amb/context.jsonld", "https://schema.org", ["@language" => "de"]],
             "id" => get_permalink($post->ID),
             "dateCreated" => get_the_date('c', $post),
             "datePublished" => get_the_date('c', $post),
             "dateModified" => get_the_modified_date('c', $post),
-            "publisher" => [["type" => "Organization", "name" => $amb_data['publisher']]],
+            "publisher" => [["type" => "Organization", "name" => $amb_data_core['publisher']]],
             "creator" => $amb_data_core['creator'],
             "name" => get_the_title($post),
             "description" => $amb_data_core['description'],
             "keywords" => $amb_data_core['keywords'],
             "image" => get_the_post_thumbnail_url($post, 'full'),
-            "inLanguage" => $amb_data_core['inLanguage'],
-            "license" => $amb_data_core['license'],
-            "isAccessibleForFree" => filter_var($amb_data_core['isAccessibleForFree'], FILTER_VALIDATE_BOOLEAN),
-            "conditionsOfAccess" => ["id" => $amb_data_core['conditionsOfAccess'], "type" => "Concept"],
-            "area" => $amb_data['area'],    
-            "type" => $amb_data['type'],   
-            "learningResourceType" => $amb_data['learningResourceType'], 
-            "audience" => $amb_data['audience'],
-            "educationalLevel" => $amb_data['educationalLevel'],
-            "about" => $about
-            //"aboutSubject" => $amb_data['aboutSubject'],
-            //"aboutContext" => $amb_data['aboutContext'],
-            
         ];
+
+        foreach ($all_options as $field => $data) {
+            $value = get_post_meta($post->ID, $field, true);
+            if (empty($value)) {
+                $value = $defaults[$field] ?? null;
+            }
+
+            $amb_key = $data['amb_key'] ?? 'about';
+
+            if (!is_null($value)) {
+                $formatted_value = is_array($value) ? array_map(function ($item) use ($data) {
+                    return [
+                        'id' => $item['id'],
+                        'prefLabel' => ['de' => $item['prefLabel']['de']],
+                        'type' => 'Concept'
+                    ];
+                }, $value) : [
+                    'id' => $value,
+                    'prefLabel' => ['de' => $data['options'][0][$value]],
+                    'type' => 'Concept'
+                ];
+
+                if (isset($json_ld_data[$amb_key])) {
+                    $json_ld_data[$amb_key] = array_merge($json_ld_data[$amb_key], $formatted_value);
+                } else {
+                    $json_ld_data[$amb_key] = $formatted_value;
+                }
+            }
+        }
 
         // JSON-LD-Ausgabe im Header
         echo '<script type="application/ld+json">' . json_encode($json_ld_data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
     }
 }
-
 
