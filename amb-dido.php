@@ -138,12 +138,56 @@ function amb_get_other_fields() {
 
 
 /**
- * Wertelisten aus Archiven auslesen
+ * Funktion zur Rückgabe der JSON-URLs für Wertelisten.
+ *
+ * @return array Array mit JSON-URLs und AMB-Schlüsseln
  */
-
-
-// Globale Konfiguration der URLs für verschiedene JSON-Daten
 function amb_get_json_urls() {
+    $predefined_json_urls = [
+        'amb_area' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
+            'amb_key' => 'area'
+        ],
+        'amb_type' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/type/index.json',
+            'amb_key' => 'type'
+        ],
+        'amb_organisationalContext' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/organisationalContext/index.json',
+            'amb_key' => 'about'
+        ],
+        'amb_didacticUseCase' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/didacticUseCase/index.json',
+            'amb_key' => 'about'
+        ],
+        'amb_learningResourceType' => [
+            'url' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
+            'amb_key' => 'learningResourceType'
+        ],
+        'amb_audience' => [
+            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/audience/index.json',
+            'amb_key' => 'audience'
+        ],
+        'amb_hochschulfaechersystematik' => [
+            'url' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json',
+            'amb_key' => 'about'
+        ]        
+    ];
+
+    $custom_json_urls = get_option('amb_dido_custom_fields', []);
+
+    $json_urls = $predefined_json_urls;
+
+    foreach ($custom_json_urls as $key => $custom_json_url) {
+        $json_urls[$key] = [
+            'url' => $custom_json_url['url'],
+            'amb_key' => $custom_json_url['key']
+        ];
+    }
+
+    return $json_urls;
+}
+function amb_get_json_urls_old() {
     return [
         'amb_area' => [
             'url' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
@@ -173,7 +217,6 @@ function amb_get_json_urls() {
             'url' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json',
             'amb_key' => 'about'
         ]        
-
     ];
 }
 
@@ -685,6 +728,31 @@ function amb_dido_add_json_ld_to_header() {
                     $json_ld_data[$amb_key] = array_merge($json_ld_data[$amb_key], $formatted_value);
                 } else {
                     $json_ld_data[$amb_key] = $formatted_value;
+                }
+            }
+
+            // Überprüfen, ob $field eine benutzerdefinierte Werteliste ist
+            $custom_fields = get_option('amb_dido_custom_fields', []);
+            $custom_field_keys = array_column($custom_fields, 'meta_key');
+            if (in_array($field, $custom_field_keys)) {
+                $custom_field_index = array_search($field, $custom_field_keys);
+                $custom_field_data = $custom_fields[$custom_field_index];
+
+                // Formatieren und hinzufügen der benutzerdefinierten Werteliste
+                $custom_field_value = get_post_meta($post->ID, $field, true);
+                if (!empty($custom_field_value)) {
+                    $formatted_custom_field_value = [
+                        'id' => $custom_field_value,
+                        'prefLabel' => ['de' => $custom_field_value],
+                        'type' => 'Concept'
+                    ];
+
+                    $amb_key = $custom_field_data['key'];
+                    if (isset($json_ld_data[$amb_key])) {
+                        $json_ld_data[$amb_key][] = $formatted_custom_field_value;
+                    } else {
+                        $json_ld_data[$amb_key] = [$formatted_custom_field_value];
+                    }
                 }
             }
         }

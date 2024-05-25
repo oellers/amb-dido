@@ -90,3 +90,19 @@ svg.components-checkbox-control__checked, svg.components-checkbox-control__indet
     white-space: pre;
     margin: 1em 0px;
 }
+
+.amb_dido_custom_field_row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.amb_dido_custom_field_column {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.amb_dido_custom_field_header {
+    font-weight: bold;
+    margin-bottom: 5px;
+}

@@ -49,23 +49,14 @@ function amb_dido_register_settings() {
     add_settings_section('amb_dido_main_section', 'Post-Typen Einstellungen', null, 'amb_dido');
     add_settings_field('amb_dido_post_types_field', 'Aktivierte Post-Typen', 'amb_dido_post_types_field_html', 'amb_dido', 'amb_dido_main_section');
 
-    //add_settings_section('amb_dido_display_metadata_section', 'Anzeigeoptionen', null, 'amb_dido');
-    //add_settings_field('amb_dido_display_metadata_field', 'Metadaten im Frontend anzeigen', 'amb_dido_display_metadata_field_html', 'amb_dido', 'amb_dido_display_metadata_section');
-
+    // Alle verfügbaren Felder abrufen 
     $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
     
     add_settings_section('amb_dido_default_section', 'Voreinstellungen für Metadaten', 'amb_dido_default_section_description', 'amb_dido');
 
-    //$fields = amb_get_other_fields();
     foreach ($all_fields as $key => $value) {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
     } 
-    /*
-    $fields2 = amb_get_all_external_values();
-    foreach ($fields2 as $key => $value) {
-        add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
-    } 
-    */
 
     add_settings_section(
         'amb_dido_metadata_section',
@@ -85,6 +76,26 @@ function amb_dido_register_settings() {
             ['id' => $key]
         );
     }
+
+    // Neue Sektion für benutzerdefinierte Wertelisten hinzufügen
+    add_settings_section(
+        'amb_dido_custom_fields_section',
+        'Benutzerdefinierte Wertelisten',
+        'amb_dido_custom_fields_section_callback',
+        'amb_dido'
+    );
+
+    // Feld für benutzerdefinierte Wertelisten hinzufügen
+    add_settings_field(
+        'amb_dido_custom_fields_field',
+        '',
+        'amb_dido_custom_fields_field_callback',
+        'amb_dido',
+        'amb_dido_custom_fields_section'
+    );
+
+    // Einstellung für benutzerdefinierte Wertelisten registrieren
+    register_setting('amb_dido_settings_group', 'amb_dido_custom_fields', 'amb_dido_sanitize_custom_fields');
 
 
 
@@ -204,3 +215,120 @@ function amb_dido_sanitize_post_types($input) {
     $valid_post_types = get_post_types(['public' => true]);
     return array_intersect($valid_post_types, $input);
 }
+
+
+/**
+ * Callback-Funktion für die Sektion der benutzerdefinierten Wertelisten.
+ */
+function amb_dido_custom_fields_section_callback() {
+    echo '<p>Fügen Sie hier benutzerdefinierte Wertelisten hinzu, indem Sie eine URL und einen AMB-Schlüssel angeben.</p>';
+}
+
+/**
+ * Callback-Funktion für die Formularfelder der benutzerdefinierten Wertelisten.
+ */
+function amb_dido_custom_fields_field_callback() {
+    $options = get_option('amb_dido_custom_fields', []);
+    $amb_keys = ['about', 'teaches', 'assesses', 'audience', 'interactivityType'];
+
+    echo '<div id="amb_dido_custom_fields_container">';
+    $counter = 1;
+    foreach ($options as $custom_field) {
+        amb_dido_render_custom_field($custom_field['url'], $custom_field['key'], $counter);
+        $counter++;
+    }
+    echo '</div>';
+    echo '<button type="button" id="amb_dido_add_custom_field">Mehr hinzufügen</button>';
+}
+
+/**
+ * Funktion zum Rendern eines einzelnen Formularfeldes für benutzerdefinierte Wertelisten.
+ */
+function amb_dido_render_custom_field($url, $key, $counter) {
+    $amb_keys = ['about', 'teaches', 'assesses', 'audience', 'interactivityType', 'competencyRequired', 'educationalLevel'];
+    $meta_key = 'amb_custom' . $counter;
+
+    echo '<div class="amb_dido_custom_field_row">';
+    echo '<div class="amb_dido_custom_field_column">';
+    echo '<div class="amb_dido_custom_field_header">JSON-URL der Wertliste</div>';
+    echo '<input type="url" name="amb_dido_custom_fields[' . esc_attr($meta_key) . '][url]" value="' . esc_attr($url) . '" placeholder="URL eingeben" />';
+    echo '</div>';
+    echo '<div class="amb_dido_custom_field_column">';
+    echo '<div class="amb_dido_custom_field_header">AMB-Feld</div>';
+    echo '<select name="amb_dido_custom_fields[' . esc_attr($meta_key) . '][key]">';
+    foreach ($amb_keys as $amb_key) {
+        $selected = ($key === $amb_key) ? 'selected' : '';
+        echo '<option value="' . esc_attr($amb_key) . '" ' . $selected . '>' . esc_html($amb_key) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="hidden" name="amb_dido_custom_fields[' . esc_attr($meta_key) . '][meta_key]" value="' . esc_attr($meta_key) . '" />';
+    echo '</div>';
+    echo '</div>';
+}
+
+/**
+ * Sanitize-Funktion für benutzerdefinierte Wertelisten.
+ */
+function amb_dido_sanitize_custom_fields($input) {
+    $sanitized_input = [];
+    foreach ($input as $custom_field) {
+        $sanitized_url = esc_url_raw($custom_field['url']);
+        $sanitized_key = in_array($custom_field['key'], ['about', 'teaches', 'assesses', 'audience', 'interactivityType']) ? $custom_field['key'] : '';
+        $meta_key = isset($custom_field['meta_key']) ? $custom_field['meta_key'] : '';
+
+        if (!empty($sanitized_url) && !empty($sanitized_key) && !empty($meta_key)) {
+            $sanitized_input[$meta_key] = [
+                'url' => $sanitized_url,
+                'key' => $sanitized_key,
+                'meta_key' => $meta_key,
+            ];
+        }
+    }
+
+    return $sanitized_input;
+}
+
+// JavaScript-Funktion für dynamische Formularfelder
+function amb_dido_custom_fields_js() {
+    ?>
+    <script>
+        (function($) {
+            var counter = <?php echo count(get_option('amb_dido_custom_fields', [])) + 1; ?>;
+
+            $('#amb_dido_add_custom_field').on('click', function() {
+                var newField = amb_dido_render_custom_field('', '', counter);
+                $('#amb_dido_custom_fields_container').append(newField);
+                counter++;
+            });
+
+            function amb_dido_render_custom_field(url, key, counter) {
+                var $row = $('<div>', { 'class': 'amb_dido_custom_field_row' });
+
+                var $columnUrl = $('<div>', { 'class': 'amb_dido_custom_field_column' });
+                var $headerUrl = $('<div>', { 'class': 'amb_dido_custom_field_header', text: 'JSON-URL der Wertliste' });
+                var $urlInput = $('<input>', { type: 'url', name: 'amb_dido_custom_fields[' + counter + '][url]', placeholder: 'URL eingeben', value: url });
+                $columnUrl.append($urlInput);
+
+                var $columnKey = $('<div>', { 'class': 'amb_dido_custom_field_column' });
+                var $headerKey = $('<div>', { 'class': 'amb_dido_custom_field_header', text: 'AMB-Feld' });
+                var $keySelect = $('<select>', { name: 'amb_dido_custom_fields[' + counter + '][key]' });
+                var ambKeys = ['about', 'teaches', 'assesses', 'audience', 'interactivityType'];
+                $.each(ambKeys, function(index, ambKey) {
+                    var $option = $('<option>', { value: ambKey, text: ambKey });
+                    if (ambKey === key) {
+                        $option.attr('selected', 'selected');
+                    }
+                    $keySelect.append($option);
+                });
+                $columnKey.append($keySelect);
+
+                var $metaKeyInput = $('<input>', { type: 'hidden', name: 'amb_dido_custom_fields[' + counter + '][meta_key]', value: 'amb_custom' + counter });
+                $row.append($columnUrl, $columnKey, $metaKeyInput);
+
+                return $row;
+            }
+        })(jQuery);
+    </script>
+    <?php
+}
+add_action('admin_footer', 'amb_dido_custom_fields_js');
