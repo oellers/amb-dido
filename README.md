@@ -38,6 +38,7 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Frontend: Ausgabe von Keywords, Autoren und Beschreibung im Frontend.
 
 ## Features in Planung
+- Optionen: Reihenfolge der Felder in Editor und Frontend einstellen
 - Editor: Tooltips mit Beschreibungen der Werte
 - Archivseite für Metadatenfelder (metafield archive)
 - Optionen: Anleitung zur Nutzung des Plugins und pflegen von Metadaten 
