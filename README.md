@@ -39,6 +39,7 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 
 ## Features in Planung
 - Optionen: Reihenfolge der Felder in Editor und Frontend einstellen
+- Optionen: Vorhandene Wordpress-Taxonomien für AMB-Felder nutzen (und Überbrückung des Metafeldes) 
 - Editor: Tooltips mit Beschreibungen der Werte
 - Archivseite für Metadatenfelder (metafield archive)
 - Optionen: Anleitung zur Nutzung des Plugins und pflegen von Metadaten 
