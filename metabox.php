@@ -4,10 +4,12 @@
 **  Keywords Wordpress Taxonomy und Metabox
 **/
 
-add_action('init', 'amb_custom_plugin_register_taxonomy'); 
+add_action('init', 'amb_register_taxonomy'); 
 add_action('do_meta_boxes', 'move_ambkeywords_metabox_location');
 
-function amb_custom_plugin_register_taxonomy() {
+function amb_register_taxonomy() {
+    //$show_ui = "yes";
+    $show_ui = get_option('show_ambkeywords_in_menu', 'yes') === 'yes';
     $selected_post_types = get_option('amb_dido_post_types', []);
     register_taxonomy('ambkeywords', $selected_post_types, [
         'hierarchical' => false,
@@ -28,8 +30,8 @@ function amb_custom_plugin_register_taxonomy() {
             'choose_from_most_used' => 'Aus den am meisten verwendeten AMB Keywords wählen',
             'not_found' => 'Keine AMB Keywords gefunden',
         ],
-        'show_ui' => false,
-        'show_in_menu' => false,
+        'show_ui' => $show_ui,
+        'show_in_menu' => $show_ui,
         'show_in_nav_menus' => false,
         'query_var' => true,
         'rewrite' => ['slug' => 'ambkeyword'],

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AMB-DidO Plugin 
  * Description: Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen
- * Version: 0.6
+ * Version: 0.7
  * Author: Justus Henke 
  */
 
@@ -516,28 +516,36 @@ function amb_dido_meta_box_callback($post) {
     wp_nonce_field('amb_dido_save_meta_box_data', 'amb_dido_meta_box_nonce');
 
     // Generierung Description
-    $description = get_post_meta($post->ID, 'amb_description', true);
-    echo '<label for="amb_description" class="amb-field">Beschreibung des Inhalts</label><br />';
-    echo '<p class="components-form-token-field__help">In zwei bis drei Sätzen den Inhalt beschreiben.</p>';
-    echo '<textarea name="amb_description" class="components-textarea-control__input amb-textarea" rows="4" cols="50">' . esc_textarea($description) . '</textarea><br />';
+    $description = '';
+    $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
+    if ($use_excerpt_for_description !== 'yes') {
+        $description = get_post_meta($post->ID, 'amb_description', true);
+        echo '<label for="amb_description" class="amb-field">Beschreibung des Inhalts</label><br />';
+        echo '<p class="components-form-token-field__help">In zwei bis drei Sätzen den Inhalt beschreiben.</p>';
+        echo '<textarea name="amb_description" class="components-textarea-control__input amb-textarea" rows="4" cols="50">' . esc_textarea($description) . '</textarea><br />';
+    }
     
 
     // Generierung Autoren
     $creator = get_post_meta($post->ID, 'amb_creator', true);
-    echo '<label for="amb_keywords" class="amb-field">Autor/innen</label><br />';
+    echo '<label for="amb_creator" class="amb-field">Autor/innen</label><br />';
     echo '<p class="components-form-token-field__help">Namen mit Kommas trennen.</p>';
     echo '<input type="text" name="amb_creator" size="80" value="' . esc_attr($creator) . '" class="amb-textinput" /><br />';
 
 
     // Generierung der Checkbox-Felder
     $defaults = get_option('amb_dido_defaults');
+    $mapping = get_option('amb_dido_taxonomy_mapping', array());
     $checkbox_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
     // Zieht die Feldstruktur korrekt mit allen verfügbaren Ebenen
 
     foreach ($checkbox_options as $field => $data) {
         if (isset($defaults[$field]) && !empty($defaults[$field])) {
             amb_dido_display_defaults($field, $data);
-        } 
+        } elseif (isset($mapping[$field])) {
+            // Field is mapped to a taxonomy, don't display it
+            continue;
+        }
         /* elseif (isset($defaults[$field]) && $defaults[$field] == 'deactivate') {
             // do nothing 
         }*/ 
@@ -665,16 +673,35 @@ function amb_dido_add_json_ld_to_header() {
         // Voreinstellungen aus Optionseite rufen
         $defaults = get_option('amb_dido_defaults');
 
+        // Mit Taxonomien überbrückte Felder rufen 
+        $mapping = get_option('amb_dido_taxonomy_mapping', array());
+
         // Alle Felder (hartkodiert und extern) abrufen
         $all_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
 
-        // Keywords auslesen
-        $terms = get_the_terms($post->ID, 'ambkeywords');
-        $keywords = [];
+        // Description auslesen
+        $description = '';
+        $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
+        if ($use_excerpt_for_description === 'yes') {
+            $description = get_the_excerpt($post);
+        } else {
+            $description = get_post_meta($post->ID, 'description', true);
+        } 
 
-        if ($terms && !is_wp_error($terms)) {
-            foreach ($terms as $term) {
-                $keywords[] = $term->name;
+        // Keywords auslesen
+        $override_taxonomy = get_option('override_ambkeyword_taxonomy', '');
+        if (!empty($override_taxonomy)) {
+            $terms = wp_get_post_terms($post->ID, $override_taxonomy, ['fields' => 'names']);
+            if (!is_wp_error($terms) && !empty($terms)) {
+                $keywords = implode(',', $terms);
+            }
+        } else {
+            $terms = get_the_terms($post->ID, 'ambkeywords');
+            if ($terms && !is_wp_error($terms)) {
+                foreach ($terms as $term) {
+                    $keywords[] = $term->name;
+                }
+                $keywords = implode(',', $keywords);
             }
         }
 
@@ -683,7 +710,7 @@ function amb_dido_add_json_ld_to_header() {
 
         // JSON Elemente zusammenstellen
         $amb_data_core = [
-            'description' => get_post_meta($post->ID, 'amb_description', true),
+            'description' => $description,
             'creator' => generate_creator_objects($creators),
             'keywords' => !empty($keywords) ? $keywords : '',
             'publisher' => get_bloginfo('name'),
@@ -704,9 +731,22 @@ function amb_dido_add_json_ld_to_header() {
         ];
 
         foreach ($all_options as $field => $data) {
-            $value = get_post_meta($post->ID, $field, true);
-            if (empty($value)) {
-                $value = $defaults[$field] ?? null;
+            if (isset($mapping[$field])) {
+                // Field is mapped to a taxonomy
+                $terms = wp_get_post_terms($post->ID, $mapping[$field], array('fields' => 'all'));
+                $value = array();
+                foreach ($terms as $term) {
+                    $value[] = array(
+                        'id' => $term->slug,
+                        'prefLabel' => array('de' => $term->name),
+                        'type' => 'Concept'
+                    );
+                }
+            } else {
+                $value = get_post_meta($post->ID, $field, true);
+                if (empty($value)) {
+                    $value = $defaults[$field] ?? null;
+                }
             }
 
             $amb_key = $data['amb_key'] ?? 'about';
@@ -728,31 +768,6 @@ function amb_dido_add_json_ld_to_header() {
                     $json_ld_data[$amb_key] = array_merge($json_ld_data[$amb_key], $formatted_value);
                 } else {
                     $json_ld_data[$amb_key] = $formatted_value;
-                }
-            }
-
-            // Überprüfen, ob $field eine benutzerdefinierte Werteliste ist
-            $custom_fields = get_option('amb_dido_custom_fields', []);
-            $custom_field_keys = array_column($custom_fields, 'meta_key');
-            if (in_array($field, $custom_field_keys)) {
-                $custom_field_index = array_search($field, $custom_field_keys);
-                $custom_field_data = $custom_fields[$custom_field_index];
-
-                // Formatieren und hinzufügen der benutzerdefinierten Werteliste
-                $custom_field_value = get_post_meta($post->ID, $field, true);
-                if (!empty($custom_field_value)) {
-                    $formatted_custom_field_value = [
-                        'id' => $custom_field_value,
-                        'prefLabel' => ['de' => $custom_field_value],
-                        'type' => 'Concept'
-                    ];
-
-                    $amb_key = $custom_field_data['key'];
-                    if (isset($json_ld_data[$amb_key])) {
-                        $json_ld_data[$amb_key][] = $formatted_custom_field_value;
-                    } else {
-                        $json_ld_data[$amb_key] = [$formatted_custom_field_value];
-                    }
                 }
             }
         }

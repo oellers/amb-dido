@@ -52,7 +52,7 @@ function show_post_metadata() {
                     if (isset($item['prefLabel']['de'])) {
                         $label = esc_html($item['prefLabel']['de']);
                         $search_url = esc_url(add_query_arg('s', urlencode("$key: $label"), home_url('/')));
-                        $output .= '<li><a href="' . $search_url . '">' . $label . '</a></li>';
+                        $output .= '<li class="is-style-pill wp-block-post-terms"><a href="' . $search_url . '">' . $label . '</a></li>';
                     }
                 }
                 $output .= '</ul>';
