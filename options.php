@@ -374,7 +374,7 @@ function amb_dido_custom_fields_js() {
                 var $columnKey = $('<div>', { 'class': 'amb_dido_custom_field_column' });
                 var $headerKey = $('<div>', { 'class': 'amb_dido_custom_field_header', text: 'AMB-Feld' });
                 var $keySelect = $('<select>', { name: 'amb_dido_custom_fields[' + counter + '][key]' });
-                var ambKeys = ['about', 'teaches', 'assesses', 'audience', 'interactivityType'];
+                var ambKeys = ['about', 'teaches', 'assesses', 'audience', 'interactivityType', 'learningResourceType'];
                 $.each(ambKeys, function(index, ambKey) {
                     var $option = $('<option>', { value: ambKey, text: ambKey });
                     if (ambKey === key) {
