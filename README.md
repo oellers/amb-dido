@@ -46,5 +46,6 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Anleitung zur Nutzung des Plugins und pflegen von Metadaten 
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
-- Frontend: Bibliografische Angaben aus Metadaten erstellen, ggf. auch als BibTex 
+- Frontend: Bibliografische Angaben aus Metadaten erstellen, ggf. auch als BibTex
+- Editor: Import/Export von Metadaten im YAML-Format, siehe: https://liascript.github.io/course/?https://raw.githubusercontent.com/tibhannover/oer-github-tutorial-liascript/main/tutorial.md#8
 
