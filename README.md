@@ -47,5 +47,7 @@ Aktuell noch in Entwicklung, aber bereits funktionsfähig zum Testen.
 - Optionen: Anpassung der Darstellung von Metadaten im Frontend
 - Optionen: Einstellung der Sprache der Wertelabels
 - Frontend: Bibliografische Angaben aus Metadaten erstellen, ggf. auch als BibTex
-- Editor: Import/Export von Metadaten im YAML-Format, siehe: https://liascript.github.io/course/?https://raw.githubusercontent.com/tibhannover/oer-github-tutorial-liascript/main/tutorial.md#8
+- Editor: Import/Export von Metadaten im JSON bzw. YAML-Format, siehe: https://liascript.github.io/course/?https://raw.githubusercontent.com/tibhannover/oer-github-tutorial-liascript/main/tutorial.md#8
+- Editor: interne Relationen zu anderen Dokumenten erstellen (isPartOf, hasPart)
+- Interne Sitemap mit Metadaten ausgezeichneter Dokumente
 
