@@ -751,7 +751,7 @@ function amb_dido_add_json_ld_to_header() {
 
             $amb_key = $data['amb_key'] ?? 'about';
 
-            if (!is_null($value)) {
+            if (!is_null($value) && !empty($value)) {
                 $formatted_value = is_array($value) ? array_map(function ($item) use ($data) {
                     return [
                         'id' => $item['id'],
