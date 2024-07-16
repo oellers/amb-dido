@@ -130,6 +130,15 @@ function amb_get_other_fields() {
                 ['http://w3id.org/kim/conditionsOfAccess/login' => 'Anmeldung erforderlich']
             ],
             'amb_key' => 'conditionsOfAccess'
+        ],
+        'amb_interactivityType' => [
+            'field_label' => 'Lehr-/Lernform',
+            'options' => [
+                ['http://purl.org/dcx/lrmi-vocabs/interactivityType/active' => 'aktiv (eher selbstgesteuert)'],
+                ['http://purl.org/dcx/lrmi-vocabs/interactivityType/expositive' => 'erklärend (eher fremdgesteuert)'],
+                ['http://purl.org/dcx/lrmi-vocabs/interactivityType/mixed' => 'gemischt']
+            ],
+            'amb_key' => 'interactivityType'
         ]
         
     ];
@@ -740,7 +749,7 @@ function amb_dido_add_json_ld_to_header() {
                     'type' => 'Concept'
                 ];
 
-                if(in_array($amb_key, ['license', 'conditionsOfAccess'])) {
+                if(in_array($amb_key, ['license', 'conditionsOfAccess', 'interactivityType'])) {
                     $formatted_value = $formatted_value[0] ?? $formatted_value;
                 }
 
