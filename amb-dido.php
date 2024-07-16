@@ -129,7 +129,7 @@ function amb_get_other_fields() {
                 ['http://w3id.org/kim/conditionsOfAccess/no_login' => 'Keine Anmeldung erforderlich'],
                 ['http://w3id.org/kim/conditionsOfAccess/login' => 'Anmeldung erforderlich']
             ],
-            'amb_key' => 'license'
+            'amb_key' => 'conditionsOfAccess'
         ]
         
     ];
