@@ -740,6 +740,10 @@ function amb_dido_add_json_ld_to_header() {
                     'type' => 'Concept'
                 ];
 
+                if($amb_key === 'license') {
+                    $formatted_value = $formatted_value[0] ?? $formatted_value;
+                }
+
                 if (isset($json_ld_data[$amb_key])) {
                     $json_ld_data[$amb_key] = array_merge($json_ld_data[$amb_key], $formatted_value);
                 } else {
