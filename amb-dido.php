@@ -647,17 +647,17 @@ function save_all_checkbox_data($post_id) {
     }
 }
 
-
-
-
-
 // creator-Objekte vorbereiten
-function generate_creator_objects($creators) {
+function generate_creator_objects($post_id) {
+    $creators = array_filter(explode(',', get_post_meta($post_id, 'amb_creator', true)), function($value) {
+        return trim($value) !== '';
+    });
+
     $creator_objects = [];
     foreach ($creators as $creator) {
         $creator_objects[] = [
             'type' => 'Person',
-            'id' => $creator,
+            'name' => $creator,
         ];
     }
     return $creator_objects;
@@ -705,13 +705,10 @@ function amb_dido_add_json_ld_to_header() {
             }
         }
 
-        // creator Werte holen
-        $creators = explode(',', get_post_meta($post->ID, 'amb_creator', true));
-
         // JSON Elemente zusammenstellen
         $amb_data_core = [
             'description' => $description,
-            'creator' => generate_creator_objects($creators),
+            'creator' => generate_creator_objects($post->ID),
             'keywords' => !empty($keywords) ? $keywords : '',
             'publisher' => get_bloginfo('name'),
         ];
