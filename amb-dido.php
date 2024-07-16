@@ -2,8 +2,8 @@
 /**
  * Plugin Name: AMB-DidO Plugin 
  * Description: Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen
- * Version: 0.7
- * Author: Justus Henke 
+ * Version: 0.8.2
+ * Author Justus Henke, Manuel Oellers
  */
 
 
@@ -29,7 +29,6 @@ function amb_dido_enqueue_frontend_styles() {
     wp_register_style('amb_dido_styles_frontend', plugins_url('styles-frontend.css', __FILE__));
     wp_enqueue_style('amb_dido_styles_frontend');
 }
-
 
 function amb_enqueue_scripts() {
     wp_enqueue_script('amb-keywords-js', plugin_dir_url(__FILE__) . 'scripts.js', [], null, true);
@@ -187,38 +186,6 @@ function amb_get_json_urls() {
 
     return $json_urls;
 }
-function amb_get_json_urls_old() {
-    return [
-        'amb_area' => [
-            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
-            'amb_key' => 'area'
-        ],
-        'amb_type' => [
-            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/type/index.json',
-            'amb_key' => 'type'
-        ],
-        'amb_organisationalContext' => [
-            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/organisationalContext/index.json',
-            'amb_key' => 'about'
-        ],
-        'amb_didacticUseCase' => [
-            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/didacticUseCase/index.json',
-            'amb_key' => 'about'
-        ],
-        'amb_learningResourceType' => [
-            'url' => 'https://skohub.io/dini-ag-kim/hcrt/heads/master/w3id.org/kim/hcrt/scheme.json',
-            'amb_key' => 'learningResourceType'
-        ],
-        'amb_audience' => [
-            'url' => 'https://hof-halle-wittenberg.github.io/vocabs/audience/index.json',
-            'amb_key' => 'audience'
-        ],
-        'amb_hochschulfaechersystematik' => [
-            'url' => 'https://skohub.io/dini-ag-kim/hochschulfaechersystematik/heads/master/w3id.org/kim/hochschulfaechersystematik/scheme.json',
-            'amb_key' => 'about'
-        ]        
-    ];
-}
 
 
 function amb_get_all_external_values() {
@@ -246,7 +213,7 @@ function amb_fetch_external_values($url, $key, $amb_key) {
 
     $field_label = $data['title']['de'] ?? 'Standard-Titel';
     $concepts = $data['hasTopConcept'] ?? [];
-    $options = parse_concepts($concepts);
+    $options = amb_parse_concepts($concepts);
 
     return [
         'field_label' => $field_label,
@@ -255,7 +222,7 @@ function amb_fetch_external_values($url, $key, $amb_key) {
     ];
 }
 
-function parse_concepts($concepts) {
+function amb_parse_concepts($concepts) {
     $options = [];
     foreach ($concepts as $concept) {
         if (isset($concept['id']) && isset($concept['prefLabel']['de'])) {
@@ -263,7 +230,7 @@ function parse_concepts($concepts) {
                 $concept['id'] => $concept['prefLabel']['de']
             ];
             if (isset($concept['narrower'])) {
-                $entry['narrower'] = parse_concepts($concept['narrower']);
+                $entry['narrower'] = amb_parse_concepts($concept['narrower']);
             }
             $options[] = $entry;
         }
@@ -368,7 +335,7 @@ function amb_dido_display_defaults($field, $options) {
  */
 
 // Zeigt erste und zweite Ebene eines Vokabulars an
-function generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
+function amb_generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
     // Falls kein Titel übergeben wurde, versuchen, den Titel aus den Optionen zu extrahieren
     if ($title === null && isset($options['field_label'])) {
         $title = $options['field_label'];
@@ -440,60 +407,8 @@ function generate_checkbox_group_any($name, $options, $stored_values, $title = n
 }
 
 
-// veraltet: Zeigt nur erste Ebene an
-function generate_checkbox_group_any_broader($name, $options, $stored_values, $title = null) {
-    // Falls kein Titel übergeben wurde, versuchen, den Titel aus den Optionen zu extrahieren
-    if ($title === null && isset($options['field_label'])) {
-        $title = $options['field_label'];
-    }
-    var_dump($options);
-    echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
-    echo '<div class="grid-container">';
-    
-    foreach ($options['options'] as $option) {
-        foreach ($option as $id => $label) {
-            //$checked = in_array($id, array_column($stored_values, 'id')) ? 'checked' : '';
-            $checked = in_array($id, $stored_values) ? 'checked' : '';
-            echo '<div class="grid-item components-base-control__field">';
-            echo '<span class="components-checkbox-control__input-container amb-control">';
-            echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input" onchange="toggleSVG(this)">';
-            if ($checked) {
-                echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
-            }
-            echo '</span>';
-            echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
-            echo '</div>';
-        }
-    }
-
-    echo '</div>';
-}
-
-
-// veraltet: Zeigt nur erste Ebene an
-function generate_checkbox_group($title, $name, $options, $stored_values) {
-    echo '<label class="amb-field">' . esc_html($title) . '</label><br />';
-    echo '<div class="grid-container">';
-    
-    foreach ($options as $id => $label) {
-        $checked = in_array($id, array_column($stored_values, 'id')) ? 'checked' : '';
-        echo '<div class="grid-item components-base-control__field">';
-        echo '<span class="components-checkbox-control__input-container amb-control">';
-        echo '<input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($id) . '" ' . $checked . ' id="type_' . esc_attr($id) . '" class="components-checkbox-control__input" onchange="toggleSVG(this)">';
-        if ($checked) {
-            echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="presentation" class="components-checkbox-control__checked" aria-hidden="true" focusable="false"><path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path></svg>';
-        }
-        echo '</span>';
-        echo '<label for="type_' . esc_attr($id) . '" class="label amb-control-label">' . esc_html($label) . '</label>';
-        echo '</div>';
-    }
-
-    echo '</div>';
-}
-
-
 /* Hilfsfunktion um ids aus Arrays zu extrahieren */ 
-function get_selected_ids($meta_field) {
+function amb_get_selected_ids($meta_field) {
     $stored_values = get_post_meta(get_the_ID(), $meta_field, true);
     $stored_values = is_array($stored_values) ? $stored_values : [];
     $ids = [];
@@ -550,8 +465,8 @@ function amb_dido_meta_box_callback($post) {
             // do nothing 
         }*/ 
         else {
-            $stored_ids = get_selected_ids($field);  
-            generate_checkbox_group_any($field, $data, $stored_ids);
+            $stored_ids = amb_get_selected_ids($field);  
+            amb_generate_checkbox_group_any($field, $data, $stored_ids);
         }
     }
     
@@ -592,10 +507,10 @@ function amb_dido_save_post_meta($post_id) {
     }
 
     // Alle Wertelisten speichern
-    save_all_checkbox_data($post_id);
+    amb_save_all_checkbox_data($post_id);
 }
 
-function save_all_checkbox_data($post_id) {
+function amb_save_all_checkbox_data($post_id) {
     // Alle verfügbaren externen Werte abrufen
     // $all_options = amb_get_all_external_values();
     $all_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
@@ -648,7 +563,7 @@ function save_all_checkbox_data($post_id) {
 }
 
 // creator-Objekte vorbereiten
-function generate_creator_objects($post_id) {
+function amb_generate_creator_objects($post_id) {
     $creators = array_filter(explode(',', get_post_meta($post_id, 'amb_creator', true)), function($value) {
         return trim($value) !== '';
     });
@@ -663,7 +578,7 @@ function generate_creator_objects($post_id) {
     return $creator_objects;
 }
 
-function get_keywords($post_id) {
+function amb_get_keywords($post_id) {
     $keywords = '';
     $override_taxonomy = get_option('override_ambkeyword_taxonomy', '');
 
@@ -684,8 +599,13 @@ function get_keywords($post_id) {
     return explode(',', $keywords);
 }
 
-// Description auslesen
-function get_description($post) {
+/**
+ * Gets the description from excerpt or post meta
+ *
+ * @param WP_Post $post
+ * @return String
+ */
+function amb_get_description($post): String {
     $description = '';
     $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
     if ($use_excerpt_for_description === 'yes') {
@@ -720,15 +640,18 @@ function amb_dido_add_json_ld_to_header() {
             "datePublished" => get_the_date('c', $post),
             "dateModified" => get_the_modified_date('c', $post),
             "publisher" => [["type" => "Organization", "name" => get_bloginfo('name')]],
-            "creator" => generate_creator_objects($post->ID),
+            "creator" => amb_generate_creator_objects($post->ID),
             "name" => get_the_title($post),
-            "description" => get_description($post),
-            "image" => get_the_post_thumbnail_url($post, 'full'),
+            "description" => amb_get_description($post),
         ];
 
         // Keywords auslesen
-        $keywords = get_keywords($post->ID) ?: '';
+        $keywords = amb_get_keywords($post->ID) ?: '';
         if(!empty($keywords)) $json_ld_data['keywords'] = $keywords;
+
+        // Thumbnail
+        $image = get_the_post_thumbnail_url($post, 'full');
+        if($image !== false) $json_ld_data['image'] = $image;
 
         foreach ($all_options as $field => $data) {
             if (isset($mapping[$field])) {
