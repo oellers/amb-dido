@@ -641,6 +641,28 @@ function amb_get_language($post): array {
 }
 
 /**
+ * Gets isAccessibleForFree
+ *
+ * @param WP_Post $post
+ * @return bool
+ */
+function amb_get_isaccessibleforfree($post): bool {
+    $field = 'amb_isAccessibleForFree';
+    $defaults = get_option('amb_dido_defaults');
+    $post_values = get_post_meta($post->ID, $field, true) ?: $defaults[$field];
+    $amb_value = true;
+
+    if(is_array($post_values)) {
+        if(isset($post_values[0]['id'])) {
+            $amb_value = $post_values[0]['id'];
+        } 
+    } elseif (is_string($post_values) && !empty($post_values)) {
+        $amb_value = $post_values;
+    }
+    return filter_var($amb_value, FILTER_VALIDATE_BOOLEAN);
+}
+
+/**
  * Bindet Custom-Fields in das JSON-LD-Format ein.
  */
 function amb_dido_add_json_ld_to_header() {
@@ -668,8 +690,8 @@ function amb_dido_add_json_ld_to_header() {
             "name" => get_the_title($post),
             "description" => amb_get_description($post),
             "inLanguage" => amb_get_language($post),
+            "isAccessibleForFree" => amb_get_isaccessibleforfree($post),
         ];
-
 
         // Keywords auslesen
         $keywords = amb_get_keywords($post->ID) ?: '';
@@ -680,8 +702,11 @@ function amb_dido_add_json_ld_to_header() {
         if($image !== false) $json_ld_data['image'] = $image;
 
         foreach ($all_options as $field => $data) {
-            if($field === 'amb_inLanguage') continue;
-            
+            // Skip already handled fields
+            if(in_array($field, ['amb_inLanguage','amb_isAccessibleForFree'])) {
+                continue;
+            } 
+
             if (isset($mapping[$field])) {
                 // Field is mapped to a taxonomy
                 $terms = wp_get_post_terms($post->ID, $mapping[$field], array('fields' => 'all'));
