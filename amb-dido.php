@@ -684,6 +684,18 @@ function get_keywords($post_id) {
     return explode(',', $keywords);
 }
 
+// Description auslesen
+function get_description($post) {
+    $description = '';
+    $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
+    if ($use_excerpt_for_description === 'yes') {
+        $description = get_the_excerpt($post);
+    } else {
+        $description = get_post_meta($post->ID, 'description', true);
+    } 
+    return $description;
+}
+
 /**
  * Bindet Custom-Fields in das JSON-LD-Format ein.
  */
@@ -700,32 +712,17 @@ function amb_dido_add_json_ld_to_header() {
         // Alle Felder (hartkodiert und extern) abrufen
         $all_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
 
-        // Description auslesen
-        $description = '';
-        $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
-        if ($use_excerpt_for_description === 'yes') {
-            $description = get_the_excerpt($post);
-        } else {
-            $description = get_post_meta($post->ID, 'description', true);
-        } 
-
         // JSON Elemente zusammenstellen
-        $amb_data_core = [
-            'description' => $description,
-            'creator' => generate_creator_objects($post->ID),
-            'publisher' => get_bloginfo('name'),
-        ];
-
         $json_ld_data = [
             "@context" => ["https://w3id.org/kim/amb/context.jsonld", "https://schema.org", ["@language" => "de"]],
             "id" => get_permalink($post->ID),
             "dateCreated" => get_the_date('c', $post),
             "datePublished" => get_the_date('c', $post),
             "dateModified" => get_the_modified_date('c', $post),
-            "publisher" => [["type" => "Organization", "name" => $amb_data_core['publisher']]],
-            "creator" => $amb_data_core['creator'],
+            "publisher" => [["type" => "Organization", "name" => get_bloginfo('name')]],
+            "creator" => generate_creator_objects($post->ID),
             "name" => get_the_title($post),
-            "description" => $amb_data_core['description'],
+            "description" => get_description($post),
             "image" => get_the_post_thumbnail_url($post, 'full'),
         ];
 
