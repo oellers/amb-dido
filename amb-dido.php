@@ -663,6 +663,27 @@ function generate_creator_objects($post_id) {
     return $creator_objects;
 }
 
+function get_keywords($post_id) {
+    $keywords = '';
+    $override_taxonomy = get_option('override_ambkeyword_taxonomy', '');
+
+    if (!empty($override_taxonomy)) {
+        $terms = wp_get_post_terms($post_id, $override_taxonomy, ['fields' => 'names']);
+        if (!is_wp_error($terms) && !empty($terms)) {
+            $keywords = implode(',', $terms);
+        }
+    } else {
+        $terms = get_the_terms($post_id, 'ambkeywords');
+        if ($terms && !is_wp_error($terms)) {
+            foreach ($terms as $term) {
+                $tmp_keywords[] = $term->name;
+            }
+            $keywords = implode(',', $tmp_keywords);
+        }
+    }
+    return explode(',', $keywords);
+}
+
 /**
  * Bindet Custom-Fields in das JSON-LD-Format ein.
  */
@@ -688,28 +709,10 @@ function amb_dido_add_json_ld_to_header() {
             $description = get_post_meta($post->ID, 'description', true);
         } 
 
-        // Keywords auslesen
-        $override_taxonomy = get_option('override_ambkeyword_taxonomy', '');
-        if (!empty($override_taxonomy)) {
-            $terms = wp_get_post_terms($post->ID, $override_taxonomy, ['fields' => 'names']);
-            if (!is_wp_error($terms) && !empty($terms)) {
-                $keywords = implode(',', $terms);
-            }
-        } else {
-            $terms = get_the_terms($post->ID, 'ambkeywords');
-            if ($terms && !is_wp_error($terms)) {
-                foreach ($terms as $term) {
-                    $keywords[] = $term->name;
-                }
-                $keywords = implode(',', $keywords);
-            }
-        }
-
         // JSON Elemente zusammenstellen
         $amb_data_core = [
             'description' => $description,
             'creator' => generate_creator_objects($post->ID),
-            'keywords' => !empty($keywords) ? $keywords : '',
             'publisher' => get_bloginfo('name'),
         ];
 
@@ -723,9 +726,12 @@ function amb_dido_add_json_ld_to_header() {
             "creator" => $amb_data_core['creator'],
             "name" => get_the_title($post),
             "description" => $amb_data_core['description'],
-            "keywords" => $amb_data_core['keywords'],
             "image" => get_the_post_thumbnail_url($post, 'full'),
         ];
+
+        // Keywords auslesen
+        $keywords = get_keywords($post->ID) ?: '';
+        if(!empty($keywords)) $json_ld_data['keywords'] = $keywords;
 
         foreach ($all_options as $field => $data) {
             if (isset($mapping[$field])) {
