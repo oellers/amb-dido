@@ -603,9 +603,9 @@ function amb_get_keywords($post_id) {
  * Gets the description from excerpt or post meta
  *
  * @param WP_Post $post
- * @return String
+ * @return string
  */
-function amb_get_description($post): String {
+function amb_get_description($post): string {
     $description = '';
     $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
     if ($use_excerpt_for_description === 'yes') {
@@ -614,6 +614,30 @@ function amb_get_description($post): String {
         $description = get_post_meta($post->ID, 'description', true);
     } 
     return $description;
+}
+
+/**
+ * Gets the language from post meta
+ *
+ * @param WP_Post $post
+ * @return array
+ */
+function amb_get_language($post): array {
+    $field = 'amb_inLanguage';
+    $defaults = get_option('amb_dido_defaults');
+    $post_languages = get_post_meta($post->ID, $field, true) ?: $defaults[$field];
+    $amb_languages = [];
+    
+    if(is_array($post_languages)) {
+        foreach($post_languages as $lang) {
+            if(isset($lang['id'])) {
+                $amb_languages[] = $lang['id'];
+            } 
+        }
+    } elseif (is_string($post_languages) && !empty($post_languages)) {
+        $amb_languages[] = $languages;
+    }
+    return $amb_languages;
 }
 
 /**
@@ -643,7 +667,9 @@ function amb_dido_add_json_ld_to_header() {
             "creator" => amb_generate_creator_objects($post->ID),
             "name" => get_the_title($post),
             "description" => amb_get_description($post),
+            "inLanguage" => amb_get_language($post),
         ];
+
 
         // Keywords auslesen
         $keywords = amb_get_keywords($post->ID) ?: '';
@@ -654,6 +680,8 @@ function amb_dido_add_json_ld_to_header() {
         if($image !== false) $json_ld_data['image'] = $image;
 
         foreach ($all_options as $field => $data) {
+            if($field === 'amb_inLanguage') continue;
+            
             if (isset($mapping[$field])) {
                 // Field is mapped to a taxonomy
                 $terms = wp_get_post_terms($post->ID, $mapping[$field], array('fields' => 'all'));
@@ -699,4 +727,5 @@ function amb_dido_add_json_ld_to_header() {
         echo '<script type="application/ld+json">' . json_encode($json_ld_data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
     }
 }
+
 
