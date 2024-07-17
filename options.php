@@ -450,7 +450,7 @@ function render_override_ambkeyword_taxonomy_field() {
     echo '<select name="override_ambkeyword_taxonomy">';
     echo '<option value="">--Keine Auswahl--</option>';
     foreach ($taxonomies as $taxonomy) {
-        $selected = (isset($mapping) && current($mapping) === $taxonomy->name) ? 'selected' : '';
+        $selected = (isset($options) && $options === $taxonomy->name) ? 'selected' : '';
             echo '<option value="' . esc_attr($taxonomy->name) . '" ' . $selected . '>' . esc_html($taxonomy->label) . '</option>';
     }
     echo '</select>';
