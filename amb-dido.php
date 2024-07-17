@@ -644,9 +644,10 @@ function amb_get_language($post): array {
             } 
         }
     } elseif (is_string($post_languages) && !empty($post_languages)) {
-        $amb_languages[] = $languages;
+        $amb_languages[] = $post_languages;
     }
-    return $amb_languages;
+    
+    return !empty($amb_languages) ? $amb_languages : [''];
 }
 
 /**
