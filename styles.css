@@ -38,8 +38,14 @@ Plugin: AMB-DiDo
 }
 
 svg.components-checkbox-control__checked, svg.components-checkbox-control__indeterminate {
-        top: -2px;
+    /* top: -2px */
 }
+
+.components-checkbox-control__input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+}
+
 
 
 .amb-narrower {
