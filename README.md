@@ -1,8 +1,8 @@
 ---
 Plugin Name: AMB-DidO Plugin 
 Description: Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen auf beliebigen Wordpress-Seiten.
-Latest Release: 0.8
-Author: Justus Henke / HoF
+Latest Release: 0.8.2 
+Author: Justus Henke (HoF), Manuel Oellers (Contributor, U Münster) 
 ---
 # AMB-DidO Plugin 
 
