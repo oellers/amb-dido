@@ -69,7 +69,7 @@ function amb_dido_register_settings() {
     add_settings_field('amb_dido_post_types_field', 'Aktivierte Post-Typen', 'amb_dido_post_types_field_html', 'amb_dido', 'amb_dido_main_section');
 
     // Alle verfügbaren Felder abrufen 
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $all_fields = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
 
 
     // Add new section for WordPress taxonomy integration
@@ -175,7 +175,7 @@ function amb_dido_metadata_section_callback() {
     echo '<p>Sie können auch beliebige Felder in Ihrem Theme mit <span class="amb-code">show_amb_metadata("NAME_DES_FELDS")</span> aufrufen.</p>';
     echo '<p>Folgende Felder können Sie dafür verwenden:</p>';
 
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $all_fields = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
 
 
     foreach ($all_fields as $field => $data) {
@@ -251,7 +251,7 @@ register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanit
 // veraltet:
 function amb_dido_default_field_html() {
     echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressourcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt. ';
-    $fields = amb_get_other_fields();
+    $fields = amb_dido_get_other_fields();
     foreach ($fields as $key => $value) {
         add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
     }
@@ -408,7 +408,7 @@ function amb_dido_taxonomy_section_callback() {
 
 // Callback for the taxonomy mapping fields
 function amb_dido_taxonomy_mapping_callback() {
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $all_fields = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
     $taxonomies = get_taxonomies(array('public' => true), 'objects');
     $mapping = get_option('amb_dido_taxonomy_mapping', array());
 

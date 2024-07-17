@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Funktion zur Erweiterung der Suche
-function custom_search_query($search, $wp_query) {
+function amb_dido_custom_search_query($search, $wp_query) {
     global $wpdb;
 
     if (empty($search)) {
@@ -32,7 +32,7 @@ function custom_search_query($search, $wp_query) {
     $search .= " OR {$wpdb->posts}.post_content LIKE '%{$search_term}%'";
 
     // Add custom meta fields to search
-    $all_options = amb_get_all_external_values();
+    $all_options = amb_dido_get_all_external_values();
     $meta_keys = array_keys($all_options); // Dynamically get meta keys
 
     // Check if search term contains specific meta key search (e.g., "audience: Lehrperson")
@@ -74,4 +74,4 @@ function custom_search_query($search, $wp_query) {
 }
 
 // Hook in to modify the search query
-add_filter('posts_search', 'custom_search_query', 10, 2);
+add_filter('posts_search', 'amb_dido_custom_search_query', 10, 2);
