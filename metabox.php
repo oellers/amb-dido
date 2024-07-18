@@ -4,10 +4,10 @@
 **  Keywords Wordpress Taxonomy und Metabox
 **/
 
-add_action('init', 'amb_register_taxonomy'); 
-add_action('do_meta_boxes', 'move_ambkeywords_metabox_location');
+add_action('init', 'amb_dido_register_taxonomy'); 
+add_action('do_meta_boxes', 'amb_dido_move_ambkeywords_metabox_location');
 
-function amb_register_taxonomy() {
+function amb_dido_register_taxonomy() {
     //$show_ui = "yes";
     $show_ui = get_option('show_ambkeywords_in_menu', 'yes') === 'yes';
     $selected_post_types = get_option('amb_dido_post_types', []);
@@ -39,18 +39,18 @@ function amb_register_taxonomy() {
     ]);
 }
 
-function amb_register_keywords_meta_box() {
+function amb_dido_register_keywords_meta_box() {
     add_meta_box(
-        'amb_keywords_meta_box',
+        'amb_dido_keywords_meta_box',
         'AMB Keywords',
-        'amb_keywords_meta_box_callback',
+        'amb_dido_keywords_meta_box_callback',
         'post',
         'normal',
         'default'
     );
 }
 
-function move_ambkeywords_metabox_location(){
+function amb_dido_move_ambkeywords_metabox_location(){
     global $wp_meta_boxes;
     // Stelle sicher, dass die Standard-Metabox entfernt wird, bevor du deine hinzufügst
     unset($wp_meta_boxes['post']['normal']['core']['tagsdiv-ambkeywords']);

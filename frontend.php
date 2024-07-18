@@ -16,8 +16,8 @@ function add_metadata_to_content($content) {
     $is_main_query = is_main_query();
 
     if ($options && $is_post_or_page && $in_the_loop && $is_main_query) {
-        if (function_exists('show_post_metadata')) {
-            $metadata_content = show_post_metadata();
+        if (function_exists('amb_dido_show_post_metadata')) {
+            $metadata_content = amb_dido_show_post_metadata();
             $content .= $metadata_content;
         } else {
             // do nothing
@@ -35,14 +35,14 @@ add_filter('the_content', 'add_metadata_to_content', 20);
 * Anzeigen der ausgewählten Metadaten im Frontend
 **/ 
 
-function show_post_metadata() {
+function amb_dido_show_post_metadata() {
     global $post;
     if (empty($post)) return '';
 
     $output = '<div class="amb-metadata-box">';
     $options = get_option('amb_dido_metadata_display_options');
 
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $all_fields = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
     foreach ($all_fields as $key => $info) {
         if (!empty($options[$key])) {
             $metadata = get_post_meta($post->ID, $key, true);
@@ -68,12 +68,14 @@ function show_post_metadata() {
 
 /** 
  * Hook function für das Theme
+ *
+ * @deprecated no usage found
  **/ 
 function show_amb_metadata($meta_key) {
     global $post;
     if (empty($post)) return;
 
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $all_fields = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
 
     if (!isset($all_fields[$meta_key])) return; 
 
@@ -107,7 +109,7 @@ function show_amb_metadata($meta_key) {
 /** 
  * Shortcode für das Theme
  **/ 
-function show_amb_metadata_shortcode($atts) {
+function amb_dido_show_amb_metadata_shortcode($atts) {
     global $post;
     if (empty($post)) return '';
 
@@ -117,7 +119,7 @@ function show_amb_metadata_shortcode($atts) {
     ], $atts);
 
     // Holen Sie sich die gesamte Feldkonfiguration
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $all_fields = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
 
     $output = '';
     $options = get_option('amb_dido_metadata_display_options', []);
@@ -161,9 +163,9 @@ function show_amb_metadata_shortcode($atts) {
 }
 
 
-function register_amb_metadata_shortcode() {
-    add_shortcode('show_amb_metadata', 'show_amb_metadata_shortcode');
+function amb_dido_register_amb_metadata_shortcode() {
+    add_shortcode('show_amb_metadata', 'amb_dido_show_amb_metadata_shortcode');
 }
-add_action('init', 'register_amb_metadata_shortcode');
+add_action('init', 'amb_dido_register_amb_metadata_shortcode');
 /* Nutzung im Editor: [show_amb_metadata field="amb_audience"] oder [show_amb_metadata] für alle aktivierten Felder */
 /* Nutzung im Theme: echo do_shortcode('[show_amb_metadata field="amb_learningResourceType"]'); */

@@ -1,9 +1,13 @@
 <?php
 /**
- * Plugin Name: AMB-DidO Plugin 
- * Description: Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen
- * Version: 0.8.2
- * Author Justus Henke, Manuel Oellers
+ * Plugin Name:     AMB-DidO Plugin 
+ * Plugin URI:      https://github.com/HoF-Halle-Wittenberg/amb-dido/
+ * Description:     Erstellt Metadaten gemäß AMB-Standard im JSON-Format für didaktische und Organisationsressourcen
+ * Version:         0.8.2
+ * License:         GPLv3
+ * License URI:     https://www.gnu.org/licenses/gpl-3.0.html
+ * Text Domain:     amb-dido
+ * Author:          Justus Henke, Manuel Oellers
  */
 
 
@@ -30,20 +34,20 @@ function amb_dido_enqueue_frontend_styles() {
     wp_enqueue_style('amb_dido_styles_frontend');
 }
 
-function amb_enqueue_scripts() {
+function amb_dido_enqueue_scripts() {
     wp_enqueue_script('amb-keywords-js', plugin_dir_url(__FILE__) . 'scripts.js', [], null, true);
 }
 
-function amb_enqueue_admin_scripts() {
+function amb_dido_enqueue_admin_scripts() {
     wp_enqueue_script('post'); // This script is needed for tag input and other post editing features.
 }
-add_action('admin_enqueue_scripts', 'amb_enqueue_admin_scripts');
+add_action('admin_enqueue_scripts', 'amb_dido_enqueue_admin_scripts');
 
 /**
  * Funktionen aufrufen
  */
 
-add_action('admin_enqueue_scripts', 'amb_enqueue_scripts');     // JS laden
+add_action('admin_enqueue_scripts', 'amb_dido_enqueue_scripts');     // JS laden
 add_action('admin_enqueue_scripts', 'amb_dido_enqueue_styles'); // CSS Styles
 add_action('wp_enqueue_scripts', 'amb_dido_enqueue_frontend_styles');    // CSS Styles für das Frontend
 add_action('admin_menu', 'amb_dido_create_settings_page');      // Optionsseite erstellen
@@ -93,7 +97,7 @@ function amb_dido_add_custom_box() {
 
 
 // Hartkodierte Wertelisten
-function amb_get_other_fields() {
+function amb_dido_get_other_fields() {
     return [
         
         'amb_inLanguage' => [
@@ -150,7 +154,7 @@ function amb_get_other_fields() {
  *
  * @return array Array mit JSON-URLs und AMB-Schlüsseln
  */
-function amb_get_json_urls() {
+function amb_dido_get_json_urls() {
     $predefined_json_urls = [
         'amb_area' => [
             'url' => 'https://hof-halle-wittenberg.github.io/vocabs/area/index.json',
@@ -197,12 +201,12 @@ function amb_get_json_urls() {
 }
 
 
-function amb_get_all_external_values() {
-    $urls = amb_get_json_urls();
+function amb_dido_get_all_external_values() {
+    $urls = amb_dido_get_json_urls();
     $all_values = [];
 
     foreach ($urls as $key => $url_data) {
-        $values = amb_fetch_external_values($url_data['url'], $key, $url_data['amb_key']);
+        $values = amb_dido_fetch_external_values($url_data['url'], $key, $url_data['amb_key']);
         if (!empty($values)) {
             $all_values[$key] = $values;
         }
@@ -211,7 +215,7 @@ function amb_get_all_external_values() {
     return $all_values;
 }
 
-function amb_fetch_external_values($url, $key, $amb_key) {
+function amb_dido_fetch_external_values($url, $key, $amb_key) {
     $response = wp_remote_get($url);
     if (is_wp_error($response)) {
         return [];
@@ -222,7 +226,7 @@ function amb_fetch_external_values($url, $key, $amb_key) {
 
     $field_label = $data['title']['de'] ?? 'Standard-Titel';
     $concepts = $data['hasTopConcept'] ?? [];
-    $options = amb_parse_concepts($concepts);
+    $options = amb_dido_parse_concepts($concepts);
 
     return [
         'field_label' => $field_label,
@@ -231,7 +235,7 @@ function amb_fetch_external_values($url, $key, $amb_key) {
     ];
 }
 
-function amb_parse_concepts($concepts) {
+function amb_dido_parse_concepts($concepts) {
     $options = [];
     foreach ($concepts as $concept) {
         if (isset($concept['id']) && isset($concept['prefLabel']['de'])) {
@@ -239,7 +243,7 @@ function amb_parse_concepts($concepts) {
                 $concept['id'] => $concept['prefLabel']['de']
             ];
             if (isset($concept['narrower'])) {
-                $entry['narrower'] = amb_parse_concepts($concept['narrower']);
+                $entry['narrower'] = amb_dido_parse_concepts($concept['narrower']);
             }
             $options[] = $entry;
         }
@@ -249,12 +253,12 @@ function amb_parse_concepts($concepts) {
 
 
 // veraltet: Alle Wertelisten abrufen, nur für erste Ebene
-function amb_get_all_external_values_broader() {
-    $urls = amb_get_json_urls();
+function amb_dido_get_all_external_values_broader() {
+    $urls = amb_dido_get_json_urls();
     $all_values = [];
 
     foreach ($urls as $key => $url) {
-        $values = amb_get_external_values($key);
+        $values = amb_dido_get_external_values($key);
         if (!empty($values)) {
             $all_values[$key] = $values;
         }
@@ -264,8 +268,8 @@ function amb_get_all_external_values_broader() {
 }
 
 // Externe Wertelisten, verallgemeinert für erste Ebene
-function amb_get_external_values($key, $field_label = null) {
-    $urls = amb_get_json_urls();
+function amb_dido_get_external_values($key, $field_label = null) {
+    $urls = amb_dido_get_json_urls();
 
     if (!isset($urls[$key])) {
         return []; // Keine Daten, wenn keine URL gefunden wird
@@ -305,8 +309,8 @@ function amb_dido_display_defaults($field, $options) {
     $defaults = get_option('amb_dido_defaults');
 
     // Mapping von field auf field_label
-    //$all_fields = amb_get_other_fields();
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    //$all_fields = amb_dido_get_other_fields();
+    $all_fields = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
     $field_label = isset($all_fields[$field]['field_label']) ? $all_fields[$field]['field_label'] : $field;
 
     // Ausgabe der Default-Werte oder "Keine Auswahl"
@@ -344,7 +348,7 @@ function amb_dido_display_defaults($field, $options) {
  */
 
 // Zeigt erste und zweite Ebene eines Vokabulars an
-function amb_generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
+function amb_dido_generate_checkbox_group_any($name, $options, $stored_values, $title = null) {
     // Falls kein Titel übergeben wurde, versuchen, den Titel aus den Optionen zu extrahieren
     if ($title === null && isset($options['field_label'])) {
         $title = $options['field_label'];
@@ -417,7 +421,7 @@ function amb_generate_checkbox_group_any($name, $options, $stored_values, $title
 
 
 /* Hilfsfunktion um ids aus Arrays zu extrahieren */ 
-function amb_get_selected_ids($meta_field) {
+function amb_dido_get_selected_ids($meta_field) {
     $stored_values = get_post_meta(get_the_ID(), $meta_field, true);
     $stored_values = is_array($stored_values) ? $stored_values : [];
     $ids = [];
@@ -460,7 +464,7 @@ function amb_dido_meta_box_callback($post) {
     // Generierung der Checkbox-Felder
     $defaults = get_option('amb_dido_defaults');
     $mapping = get_option('amb_dido_taxonomy_mapping', array());
-    $checkbox_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $checkbox_options = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
     // Zieht die Feldstruktur korrekt mit allen verfügbaren Ebenen
 
     foreach ($checkbox_options as $field => $data) {
@@ -474,8 +478,8 @@ function amb_dido_meta_box_callback($post) {
             // do nothing 
         }*/ 
         else {
-            $stored_ids = amb_get_selected_ids($field);  
-            amb_generate_checkbox_group_any($field, $data, $stored_ids);
+            $stored_ids = amb_dido_get_selected_ids($field);  
+            amb_dido_generate_checkbox_group_any($field, $data, $stored_ids);
         }
     }
     
@@ -516,13 +520,13 @@ function amb_dido_save_post_meta($post_id) {
     }
 
     // Alle Wertelisten speichern
-    amb_save_all_checkbox_data($post_id);
+    amb_dido_save_all_checkbox_data($post_id);
 }
 
-function amb_save_all_checkbox_data($post_id) {
+function amb_dido_save_all_checkbox_data($post_id) {
     // Alle verfügbaren externen Werte abrufen
     // $all_options = amb_get_all_external_values();
-    $all_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $all_options = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
 
     if (empty($all_options)) {
         return;
@@ -572,7 +576,7 @@ function amb_save_all_checkbox_data($post_id) {
 }
 
 // creator-Objekte vorbereiten
-function amb_generate_creator_objects($post_id) {
+function amb_dido_generate_creator_objects($post_id) {
     $creators = array_filter(explode(',', get_post_meta($post_id, 'amb_creator', true)), function($value) {
         return trim($value) !== '';
     });
@@ -587,7 +591,7 @@ function amb_generate_creator_objects($post_id) {
     return $creator_objects;
 }
 
-function amb_get_keywords($post_id) {
+function amb_dido_get_keywords($post_id) {
     $keywords = '';
     $override_taxonomy = get_option('override_ambkeyword_taxonomy', '');
 
@@ -614,7 +618,7 @@ function amb_get_keywords($post_id) {
  * @param WP_Post $post
  * @return string
  */
-function amb_get_description($post): string {
+function amb_dido_get_description($post): string {
     $description = '';
     $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
     if ($use_excerpt_for_description === 'yes') {
@@ -631,7 +635,7 @@ function amb_get_description($post): string {
  * @param WP_Post $post
  * @return array
  */
-function amb_get_language($post): array {
+function amb_dido_get_language($post): array {
     $field = 'amb_inLanguage';
     $defaults = get_option('amb_dido_defaults');
     $post_languages = get_post_meta($post->ID, $field, true) ?: $defaults[$field];
@@ -656,7 +660,7 @@ function amb_get_language($post): array {
  * @param WP_Post $post
  * @return bool
  */
-function amb_get_isaccessibleforfree($post): bool {
+function amb_dido_get_isaccessibleforfree($post): bool {
     $field = 'amb_isAccessibleForFree';
     $defaults = get_option('amb_dido_defaults');
     $post_values = get_post_meta($post->ID, $field, true) ?: $defaults[$field];
@@ -686,7 +690,7 @@ function amb_dido_add_json_ld_to_header() {
         $mapping = get_option('amb_dido_taxonomy_mapping', array());
 
         // Alle Felder (hartkodiert und extern) abrufen
-        $all_options = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+        $all_options = array_merge(amb_dido_get_other_fields(), amb_dido_get_all_external_values());
 
         // JSON Elemente zusammenstellen
         $json_ld_data = [
@@ -696,15 +700,15 @@ function amb_dido_add_json_ld_to_header() {
             "datePublished" => get_the_date('c', $post),
             "dateModified" => get_the_modified_date('c', $post),
             "publisher" => [["type" => "Organization", "name" => get_bloginfo('name')]],
-            "creator" => amb_generate_creator_objects($post->ID),
+            "creator" => amb_dido_generate_creator_objects($post->ID),
             "name" => get_the_title($post),
-            "description" => amb_get_description($post),
-            "inLanguage" => amb_get_language($post),
-            "isAccessibleForFree" => amb_get_isaccessibleforfree($post),
+            "description" => amb_dido_get_description($post),
+            "inLanguage" => amb_dido_get_language($post),
+            "isAccessibleForFree" => amb_dido_get_isaccessibleforfree($post),
         ];
 
         // Keywords auslesen
-        $keywords = amb_get_keywords($post->ID) ?: '';
+        $keywords = amb_dido_get_keywords($post->ID) ?: '';
         if(!empty($keywords)) $json_ld_data['keywords'] = $keywords;
 
         // Thumbnail
