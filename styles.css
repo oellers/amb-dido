@@ -38,7 +38,7 @@ Plugin: AMB-DiDo
 }
 
 svg.components-checkbox-control__checked, svg.components-checkbox-control__indeterminate {
-    /* top: -2px */
+    top: 10px 
 }
 
 .components-checkbox-control__input[type=checkbox] {
@@ -58,7 +58,7 @@ svg.components-checkbox-control__checked, svg.components-checkbox-control__indet
   margin-right: 5px;
   font-weight: bold;
   position: relative;
-  top: -1px;
+  top: 5px;
 }
 
 .amb-narrower.collapsed::after {
