@@ -25,10 +25,30 @@ function amb_dido_settings_page() {
     ?>
     <div class="wrap">
         <h1>AMB-DidO Einstellungen</h1>
+        <h2 class="nav-tab-wrapper">
+            <?php
+            $sections = [
+                'amb_dido_main_section' => 'Allgemeine Einstellungen',
+                'amb_dido_taxonomy_section' => 'Taxonomie-Zuordnung',
+                'amb_dido_default_section' => 'Voreinstellungen',
+                'amb_dido_metadata_section' => 'Frontend-Anzeige',
+                'amb_dido_custom_fields_section' => 'Benutzerdefinierte Felder'
+            ];
+            foreach ($sections as $section_id => $section_title) {
+                $active = $section_id === 'amb_dido_main_section' ? 'nav-tab-active' : '';
+                echo "<a class='nav-tab $active' href='#$section_id'>$section_title</a>";
+            }
+            ?>
+        </h2>
         <form method="post" action="options.php">
             <?php
             settings_fields('amb_dido_settings_group');
-            do_settings_sections('amb_dido');
+            foreach ($sections as $section_id => $section_title) {
+                $style = $section_id === 'amb_dido_main_section' ? '' : 'style="display:none;"';
+                echo "<div id='$section_id-content' class='amb-dido-section-content' $style>";
+                do_settings_sections($section_id);
+                echo "</div>";
+            }
             submit_button();
             ?>
         </form>
@@ -41,148 +61,59 @@ function amb_dido_settings_page() {
  */
 function amb_dido_register_settings() {
     // Einstellungen registrieren
-    register_setting('amb_dido_settings_group', 'amb_dido_post_types', 'amb_dido_sanitize_post_types');  // aktivierte Post-Typen
-    register_setting('amb_dido_settings_group', 'amb_dido_taxonomy_mapping', 'amb_dido_sanitize_taxonomy_mapping'); // Nutzen vorhandener Taxonomien
-    register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults'); // Standard-Werte für Felder
-    register_setting('amb_dido_settings_group', 'amb_dido_metadata_display_options', 'amb_dido_sanitize_options'); // Frontend-Darstellung
-        
-    register_setting('amb_dido_settings_group', 'amb_dido_custom_fields', 'amb_dido_sanitize_custom_fields'); // Einstellung für benutzerdefinierte Wertelisten registrieren
-
+    register_setting('amb_dido_settings_group', 'amb_dido_post_types', 'amb_dido_sanitize_post_types');
+    register_setting('amb_dido_settings_group', 'amb_dido_taxonomy_mapping', 'amb_dido_sanitize_taxonomy_mapping');
+    register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults');
+    register_setting('amb_dido_settings_group', 'amb_dido_metadata_display_options', 'amb_dido_sanitize_options');
+    register_setting('amb_dido_settings_group', 'amb_dido_custom_fields', 'amb_dido_sanitize_custom_fields');
     register_setting('amb_dido_settings_group', 'override_ambkeyword_taxonomy', [
         'default' => '',
         'sanitize_callback' => 'sanitize_text_field',
-    ]); // Keywords ersetzen mit Taxonomie
-
+    ]);
     register_setting('amb_dido_settings_group', 'show_ambkeywords_in_menu', [
         'default' => 'yes',
         'sanitize_callback' => 'sanitize_text_field',
-    ]); // Keywords in Backend anzeigen 
-
+    ]);
     register_setting('amb_dido_settings_group', 'use_excerpt_for_description', [
         'default' => 'no',
         'sanitize_callback' => 'sanitize_text_field',
-    ]); // Description ersetzen mit Exzerpt
-
+    ]);
 
     // Abschnitte und Felder hinzufügen
-    add_settings_section('amb_dido_main_section', 'Post-Typen Einstellungen', null, 'amb_dido');
-    add_settings_field('amb_dido_post_types_field', 'Aktivierte Post-Typen', 'amb_dido_post_types_field_html', 'amb_dido', 'amb_dido_main_section');
+    add_settings_section('amb_dido_main_section', '', null, 'amb_dido_main_section');
+    add_settings_field('amb_dido_post_types_field', 'Aktivierte Post-Typen', 'amb_dido_post_types_field_html', 'amb_dido_main_section', 'amb_dido_main_section');
+    add_settings_field('override_ambkeyword_taxonomy', 'AMB Keywords Taxonomie überschreiben', 'render_override_ambkeyword_taxonomy_field', 'amb_dido_main_section', 'amb_dido_main_section');
+    add_settings_field('show_ambkeywords_in_menu', 'AMB Keywords im Backend-Menü anzeigen', 'render_show_ambkeywords_in_menu_field', 'amb_dido_main_section', 'amb_dido_main_section');
+    add_settings_field('use_excerpt_for_description', 'Textauszug (Exzerpt) für Beschreibung verwenden', 'render_use_excerpt_for_description_field', 'amb_dido_main_section', 'amb_dido_main_section');
 
-    // Alle verfügbaren Felder abrufen 
+    add_settings_section('amb_dido_taxonomy_section', '', 'amb_dido_taxonomy_section_callback', 'amb_dido_taxonomy_section');
+    add_settings_field('amb_dido_taxonomy_mapping', '', 'amb_dido_taxonomy_mapping_callback', 'amb_dido_taxonomy_section', 'amb_dido_taxonomy_section');
+
+    add_settings_section('amb_dido_default_section', '', 'amb_dido_default_section_description', 'amb_dido_default_section');
     $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
-
-
-    // Add new section for WordPress taxonomy integration
-    add_settings_section(
-        'amb_dido_taxonomy_section',
-        'Verwenden bestehender WordPress-Taxonomien',
-        'amb_dido_taxonomy_section_callback',
-        'amb_dido'
-    );
-    // Add fields for taxonomy selection
-    add_settings_field(
-        'amb_dido_taxonomy_mapping',
-        '',
-        'amb_dido_taxonomy_mapping_callback',
-        'amb_dido',
-        'amb_dido_taxonomy_section'
-    );
-
-
-    // Vorausgewählte Werte für Metadaten 
-    add_settings_section('amb_dido_default_section', 'Voreinstellungen für Metadaten', 'amb_dido_default_section_description', 'amb_dido');
-
     foreach ($all_fields as $key => $value) {
-        add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
-    } 
-
-    add_settings_section(
-        'amb_dido_metadata_section',
-        'Anzeige der Metadaten im Frontend',
-        'amb_dido_metadata_section_callback',
-        'amb_dido'
-    );
-
-    // Die Felder für die Anzeige der Metadaten generieren
-    foreach ($all_fields as $key => $info) {
-        add_settings_field(
-            $key,
-            $info['field_label'],
-            'amb_dido_checkbox_field_callback',
-            'amb_dido',
-            'amb_dido_metadata_section',
-            ['id' => $key]
-        );
+        add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido_default_section', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
     }
 
-    // Neue Sektion für benutzerdefinierte Wertelisten hinzufügen
-    add_settings_section(
-        'amb_dido_custom_fields_section',
-        'Benutzerdefinierte Wertelisten',
-        'amb_dido_custom_fields_section_callback',
-        'amb_dido'
-    );
+    add_settings_section('amb_dido_metadata_section', '', 'amb_dido_metadata_section_callback', 'amb_dido_metadata_section');
+    foreach ($all_fields as $key => $info) {
+        add_settings_field($key, $info['field_label'], 'amb_dido_checkbox_field_callback', 'amb_dido_metadata_section', 'amb_dido_metadata_section', ['id' => $key]);
+    }
 
-    // Feld für benutzerdefinierte Wertelisten hinzufügen
-    add_settings_field(
-        'amb_dido_custom_fields_field',
-        '',
-        'amb_dido_custom_fields_field_callback',
-        'amb_dido',
-        'amb_dido_custom_fields_section'
-    );
-
-
-    // Einstellungen für die Überschreibung der Taxonomie hinzufügen
-    add_settings_field(
-        'override_ambkeyword_taxonomy',
-        'Möchten Sie statt der eingebauten Taxonomie "AMB Keywords" eine bereits vorhandene Taxonomie benutzen?',
-        'render_override_ambkeyword_taxonomy_field',
-        'amb_dido',
-        'amb_dido_main_section'
-    );
-
-
-    // Einstellungen für die Anzeige von Schlagwörtern im Backend-Menü hinzufügen
-    add_settings_field(
-        'show_ambkeywords_in_menu',
-        'Soll die Taxonomie "AMB Keywords" im Backend-Menü angezeigt werden?',
-        'render_show_ambkeywords_in_menu_field',
-        'amb_dido',
-        'amb_dido_main_section'
-    );
-
-    // Einstellungen für die Verwendung des Auszugsfeldes für die Beschreibung hinzufügen
-    add_settings_field(
-        'use_excerpt_for_description',
-        'Möchten Sie statt dem eingebauten Beschreibungsfeld Das Wordpress-Feld "Textauszug" (Excerpt) nutzen?',
-        'render_use_excerpt_for_description_field',
-        'amb_dido',
-        'amb_dido_main_section'
-    );
-
+    add_settings_section('amb_dido_custom_fields_section', '', 'amb_dido_custom_fields_section_callback', 'amb_dido_custom_fields_section');
+    add_settings_field('amb_dido_custom_fields_field', '', 'amb_dido_custom_fields_field_callback', 'amb_dido_custom_fields_section', 'amb_dido_custom_fields_section');
 }
-
-
-/** 
- * Anzeige von Metadaten im Frontend
-**/
-
 
 function amb_dido_metadata_section_callback() {
     echo '<p>Wählen Sie die Metadatenfelder, die im Frontend angezeigt werden sollen.</p>';
-    echo '<p> Alternativ können Metadatenfelder im Editor per Shortcodes aufgerufen werden: <span class="amb-code">[show_amb_metadata field="amb_audience"]</span> oder <span class="amb-code">[show_amb_metadata]</span> für alle aktivierten Felder.</p>';
+    echo '<p>Alternativ können Metadatenfelder im Editor per Shortcodes aufgerufen werden: <span class="amb-code">[show_amb_metadata field="amb_audience"]</span> oder <span class="amb-code">[show_amb_metadata]</span> für alle aktivierten Felder.</p>';
     echo '<p>Sie können auch beliebige Felder in Ihrem Theme mit <span class="amb-code">show_amb_metadata("NAME_DES_FELDS")</span> aufrufen.</p>';
     echo '<p>Folgende Felder können Sie dafür verwenden:</p>';
 
     $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
-
-
     foreach ($all_fields as $field => $data) {
-
         echo $all_fields[$field]['field_label'] . ": <span class='amb-code'>" . $field . "</span> | ";
     }
-
 }
 
 function amb_dido_checkbox_field_callback($args) {
@@ -201,66 +132,35 @@ function amb_dido_sanitize_options($input) {
     return $new_input;
 }
 
-// veraltet:
-function amb_dido_display_metadata_field_html() {
-    $options = get_option('amb_dido_display_metadata');
-    $checked = $options ? 'checked' : '';
-    echo '<input type="checkbox" id="amb_dido_display_metadata" name="amb_dido_display_metadata" value="1" ' . $checked . '>';
-    echo '<label for="amb_dido_display_metadata"> Metadaten im Frontend anzeigen</label>';
-}
-
-
-/** 
- * Standardwerte für Metadaten
-**/
-
 function amb_dido_default_section_description() {
     echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressourcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt. Sie können Felder auch ausblenden, ohne einen Standardwert zu setzen. </p>';
 }
 
 function amb_dido_default_field_callback($args) {
-  $options = get_option('amb_dido_defaults');
-  echo "<select name='amb_dido_defaults[{$args['id']}]'>";
-  echo "<option value=''>--Keine Auswahl--</option>"; // Option "Keine Auswahl" hinzufügen
-  echo "<option value='deactivate'" . ($options[$args['id']] === 'deactivate' ? ' selected="selected"' : '') . ">--Feld ausblenden--</option>"; // Option "Feld ausblenden" hinzufügen
-  foreach ($args['options'] as $option_array) {
-    foreach ($option_array as $id => $label) {
-        if(!is_array($label)) {
-          $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
-          echo "<option value='$id' $selected>$label</option>";
-      }
+    $options = get_option('amb_dido_defaults');
+    echo "<select name='amb_dido_defaults[{$args['id']}]'>";
+    echo "<option value=''>--Keine Auswahl--</option>";
+    echo "<option value='deactivate'" . ($options[$args['id']] === 'deactivate' ? ' selected="selected"' : '') . ">--Feld ausblenden--</option>";
+    foreach ($args['options'] as $option_array) {
+        foreach ($option_array as $id => $label) {
+            if(!is_array($label)) {
+                $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
+                echo "<option value='$id' $selected>$label</option>";
+            }
+        }
     }
-  }
-  echo "</select>";
+    echo "</select>";
 }
-
 
 function amb_dido_sanitize_defaults($value) {
-  if (!isset($value) || empty($value)) {
-    return ''; // Return empty string for invalid values (except "deactivate")
-  } elseif ($value === 'deactivate') {
-    return 'deactivate'; // Return "deactivate" as is
-  } else {
-    return $value; // Return the sanitized value
-  }
-}
-
-
-register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults');
-
-// veraltet:
-function amb_dido_default_field_html() {
-    echo '<p>Die Voreinstellungen hier vornehmen, wenn sie für alle Ressourcen gesetzt werden sollen. Diese Felder werden dann im Editor nicht mehr angezeigt. ';
-    $fields = amb_get_other_fields();
-    foreach ($fields as $key => $value) {
-        add_settings_field($key, $value['field_label'], 'amb_dido_default_field_callback', 'amb_dido', 'amb_dido_default_section', ['id' => $key, 'options' => $value['options']]);
+    if (!isset($value) || empty($value)) {
+        return '';
+    } elseif ($value === 'deactivate') {
+        return 'deactivate';
+    } else {
+        return $value;
     }
 }
-
-
-/** 
- * Post-Typen Auswahl 
-**/
 
 function amb_dido_post_types_field_html() {
     $selected_post_types = get_option('amb_dido_post_types', []);
@@ -272,23 +172,15 @@ function amb_dido_post_types_field_html() {
     }
 }
 
-
 function amb_dido_sanitize_post_types($input) {
     $valid_post_types = get_post_types(['public' => true]);
     return array_intersect($valid_post_types, $input);
 }
 
-
-/**
- * Callback-Funktion für die Sektion der benutzerdefinierten Wertelisten.
- */
 function amb_dido_custom_fields_section_callback() {
     echo '<p>Fügen Sie hier benutzerdefinierte Wertelisten hinzu, indem Sie eine URL und einen AMB-Schlüssel angeben.</p>';
 }
 
-/**
- * Callback-Funktion für die Formularfelder der benutzerdefinierten Wertelisten.
- */
 function amb_dido_custom_fields_field_callback() {
     $options = get_option('amb_dido_custom_fields', []);
     $amb_keys = ['about', 'teaches', 'assesses', 'audience', 'interactivityType'];
@@ -303,9 +195,6 @@ function amb_dido_custom_fields_field_callback() {
     echo '<button type="button" id="amb_dido_add_custom_field">Mehr hinzufügen</button>';
 }
 
-/**
- * Funktion zum Rendern eines einzelnen Formularfeldes für benutzerdefinierte Wertelisten.
- */
 function amb_dido_render_custom_field($url, $key, $counter) {
     $amb_keys = ['about', 'teaches', 'assesses', 'audience', 'interactivityType', 'competencyRequired', 'educationalLevel'];
     $meta_key = 'amb_custom' . $counter;
@@ -328,9 +217,6 @@ function amb_dido_render_custom_field($url, $key, $counter) {
     echo '</div>';
 }
 
-/**
- * Sanitize-Funktion für benutzerdefinierte Wertelisten.
- */
 function amb_dido_sanitize_custom_fields($input) {
     $sanitized_input = [];
     foreach ($input as $custom_field) {
@@ -350,7 +236,82 @@ function amb_dido_sanitize_custom_fields($input) {
     return $sanitized_input;
 }
 
-// JavaScript-Funktion für dynamische Formularfelder
+
+/**
+ * Funktion zum Überbrücken der Metafelder mit vorhandenen Wordpress-Taxonomien.
+ */
+
+// Callback for the new section
+function amb_dido_taxonomy_section_callback() {
+    echo '<p>Wenn Sie statt der eingebauten Metafelder bereits Kategorien, Tags oder andere Taxonomien eingerichtet haben und diese für die Metadaten nutzen möchten, können Sie diese hier aktivieren.</p>';
+    echo '<p>Bitte beachten Sie dabei folgendes: <br>1.) Ihre Taxonomie sollte kanonisch mit vorhandenen Schemata sein, d.h. die gleichen Werte und idealerweise Wertelabels nutzen. Ggf. sind dafür Anpassungen von "slug" (Wert) und "name" (Label) notwendig, um Gleichheit der Werte sicherzustellen. <br> 2.) Schemata sind feste Wertelisten, bitte vermeiden Sie hinzufügen neuer Kategorien, die nicht Teil des Schemas sind. Diese sind dann nicht nämlich nicht kanonisch und damit nicht interoperabel. <br> 3.) Eigene Taxonomien sind für die Darstellung und Funktionalität der Webseite zwar sehr praktisch, hier führt deren Nutzung aber dazu, dass die gesetzten Werte nicht auf publizierte Wertelisten verlinken. Daher bitte Punkt 1 und 2 beherzigen.</p>';
+}
+
+function amb_dido_taxonomy_mapping_callback() {
+    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
+    $taxonomies = get_taxonomies(array('public' => true), 'objects');
+    $mapping = get_option('amb_dido_taxonomy_mapping', array());
+
+    foreach ($all_fields as $field_key => $field_data) {
+        echo '<tr>';
+        echo '<th scope="row">' . esc_html($field_data['field_label']) . '</th>';
+        echo '<td>';
+        echo '<select name="amb_dido_taxonomy_mapping[' . esc_attr($field_key) . ']">';
+        echo '<option value="">--Keine Auswahl--</option>';
+        foreach ($taxonomies as $taxonomy) {
+            $selected = (isset($mapping[$field_key]) && $mapping[$field_key] === $taxonomy->name) ? 'selected' : '';
+            echo '<option value="' . esc_attr($taxonomy->name) . '" ' . $selected . '>' . esc_html($taxonomy->label) . '</option>';
+        }
+        echo '</select>';
+        echo '</td>';
+        echo '</tr>';
+    }
+}
+
+function amb_dido_sanitize_taxonomy_mapping($input) {
+    $sanitized_input = array();
+    foreach ($input as $field_key => $taxonomy) {
+        if (!empty($taxonomy)) {
+            $sanitized_input[$field_key] = sanitize_text_field($taxonomy);
+        }
+    }
+    return $sanitized_input;
+}
+
+function render_override_ambkeyword_taxonomy_field() {
+    $options = get_option('override_ambkeyword_taxonomy');
+    $taxonomies = get_taxonomies(array('public' => true), 'objects');
+    $mapping = get_option('amb_dido_taxonomy_mapping', array());
+
+    echo '<select name="override_ambkeyword_taxonomy">';
+    echo '<option value="">--Keine Auswahl--</option>';
+    foreach ($taxonomies as $taxonomy) {
+        $selected = (isset($options) && $options === $taxonomy->name) ? 'selected' : '';
+            echo '<option value="' . esc_attr($taxonomy->name) . '" ' . $selected . '>' . esc_html($taxonomy->label) . '</option>';
+    }
+    echo '</select>';
+}
+
+function render_show_ambkeywords_in_menu_field() {
+    $option = get_option('show_ambkeywords_in_menu', 'yes');
+    echo '<input type="radio" name="show_ambkeywords_in_menu" value="yes" ' . checked('yes', $option, false) . '> Ja ';
+    echo '<input type="radio" name="show_ambkeywords_in_menu" value="no" ' . checked('no', $option, false) . '> Nein';
+}
+
+function render_use_excerpt_for_description_field() {
+    $option = get_option('use_excerpt_for_description', 'no');
+    echo '<input type="radio" name="use_excerpt_for_description" value="no" ' . checked('no', $option, false) . '> Nein ';
+    echo '<input type="radio" name="use_excerpt_for_description" value="yes" ' . checked('yes', $option, false) . '> Ja';
+}
+
+function amb_dido_enqueue_admin_scripts($hook) {
+    if ('settings_page_amb_dido' !== $hook) {
+        return;
+    }
+    wp_enqueue_script('amb-dido-admin-js', plugins_url('scripts.js', __FILE__), array('jquery'), '1.0', true);
+}
+add_action('admin_enqueue_scripts', 'amb_dido_enqueue_admin_scripts');
+
 function amb_dido_custom_fields_js() {
     ?>
     <script>
@@ -395,75 +356,8 @@ function amb_dido_custom_fields_js() {
 }
 add_action('admin_footer', 'amb_dido_custom_fields_js');
 
+// Hook to add the settings page
+add_action('admin_menu', 'amb_dido_create_settings_page');
 
-/**
- * Funktion zum Überbrücken der Metafelder mit vorhandenen Wordpress-Taxonomien.
- */
-
-// Callback for the new section
-function amb_dido_taxonomy_section_callback() {
-    echo '<p>Wenn Sie statt der eingebauten Metafelder bereits Kategorien, Tags oder andere Taxonomien eingerichtet haben und diese für die Metadaten nutzen möchten, können Sie diese hier aktivieren.</p>';
-    echo '<p>Bitte beachten Sie dabei folgendes: <br>1.) Ihre Taxonomie sollte kanonisch mit vorhandenen Schemata sein, d.h. die gleichen Werte und idealerweise Wertelabels nutzen. Ggf. sind dafür Anpassungen von "slug" (Wert) und "name" (Label) notwendig, um Gleichheit der Werte sicherzustellen. <br> 2.) Schemata sind feste Wertelisten, bitte vermeiden Sie hinzufügen neuer Kategorien, die nicht Teil des Schemas sind. Diese sind dann nicht nämlich nicht kanonisch und damit nicht interoperabel. <br> 3.) Eigene Taxonomien sind für die Darstellung und Funktionalität der Webseite zwar sehr praktisch, hier führt deren Nutzung aber dazu, dass die gesetzten Werte nicht auf publizierte Wertelisten verlinken. Daher bitte Punkt 1 und 2 beherzigen.</p>';
-}
-
-// Callback for the taxonomy mapping fields
-function amb_dido_taxonomy_mapping_callback() {
-    $all_fields = array_merge(amb_get_other_fields(), amb_get_all_external_values());
-    $taxonomies = get_taxonomies(array('public' => true), 'objects');
-    $mapping = get_option('amb_dido_taxonomy_mapping', array());
-
-    //echo '<table class="form-table">';
-    foreach ($all_fields as $field_key => $field_data) {
-        echo '<tr>';
-        echo '<th scope="row">' . esc_html($field_data['field_label']) . '</th>';
-        echo '<td>';
-        echo '<select name="amb_dido_taxonomy_mapping[' . esc_attr($field_key) . ']">';
-        echo '<option value="">--Keine Auswahl--</option>';
-        foreach ($taxonomies as $taxonomy) {
-            $selected = (isset($mapping[$field_key]) && $mapping[$field_key] === $taxonomy->name) ? 'selected' : '';
-            echo '<option value="' . esc_attr($taxonomy->name) . '" ' . $selected . '>' . esc_html($taxonomy->label) . '</option>';
-        }
-        echo '</select>';
-        echo '</td>';
-        echo '</tr>';
-    }
-    //echo '</table>';
-}
-
-// Sanitize the taxonomy mapping
-function amb_dido_sanitize_taxonomy_mapping($input) {
-    $sanitized_input = array();
-    foreach ($input as $field_key => $taxonomy) {
-        if (!empty($taxonomy)) {
-            $sanitized_input[$field_key] = sanitize_text_field($taxonomy);
-        }
-    }
-    return $sanitized_input;
-}
-
-
-function render_override_ambkeyword_taxonomy_field() {
-    $options = get_option('override_ambkeyword_taxonomy');
-    $taxonomies = get_taxonomies(array('public' => true), 'objects');
-    $mapping = get_option('amb_dido_taxonomy_mapping', array());
-
-    echo '<select name="override_ambkeyword_taxonomy">';
-    echo '<option value="">--Keine Auswahl--</option>';
-    foreach ($taxonomies as $taxonomy) {
-        $selected = (isset($options) && $options === $taxonomy->name) ? 'selected' : '';
-            echo '<option value="' . esc_attr($taxonomy->name) . '" ' . $selected . '>' . esc_html($taxonomy->label) . '</option>';
-    }
-    echo '</select>';
-}
-
-function render_show_ambkeywords_in_menu_field() {
-    $option = get_option('show_ambkeywords_in_menu', 'yes');
-    echo '<input type="radio" name="show_ambkeywords_in_menu" value="yes" ' . checked('yes', $option, false) . '> Ja ';
-    echo '<input type="radio" name="show_ambkeywords_in_menu" value="no" ' . checked('no', $option, false) . '> Nein';
-}
-
-function render_use_excerpt_for_description_field() {
-    $option = get_option('use_excerpt_for_description', 'no');
-    echo '<input type="radio" name="use_excerpt_for_description" value="no" ' . checked('no', $option, false) . '> Nein ';
-    echo '<input type="radio" name="use_excerpt_for_description" value="yes" ' . checked('yes', $option, false) . '> Ja';
-}
+// Hook to register settings
+add_action('admin_init', 'amb_dido_register_settings');

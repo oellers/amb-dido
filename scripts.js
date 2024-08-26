@@ -29,6 +29,30 @@ function toggleNarrower(button) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    var tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            var sectionId = this.getAttribute('href').substring(1);
+            
+            // Hide all sections
+            document.querySelectorAll('.amb-dido-section-content').forEach(function(section) {
+                section.style.display = 'none';
+            });
+            
+            // Show the selected section
+            document.getElementById(sectionId + '-content').style.display = 'block';
+            
+            // Update active tab
+            tabs.forEach(function(t) {
+                t.classList.remove('nav-tab-active');
+            });
+            this.classList.add('nav-tab-active');
+        });
+    });
+});
+
 
 /* 
 document.addEventListener('DOMContentLoaded', function() {
