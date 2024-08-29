@@ -439,6 +439,8 @@ function amb_dido_meta_box_callback($post) {
     // Sicherheit: Einfügen eines Nonce-Feldes für Verifizierung
     wp_nonce_field('amb_dido_save_meta_box_data', 'amb_dido_meta_box_nonce');
 
+    $custom_labels = get_option('amb_dido_custom_labels', array());
+
     // Generierung Description
     $description = '';
     $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
@@ -469,13 +471,10 @@ function amb_dido_meta_box_callback($post) {
         } elseif (isset($mapping[$field])) {
             // Field is mapped to a taxonomy, don't display it
             continue;
-        }
-        /* elseif (isset($defaults[$field]) && $defaults[$field] == 'deactivate') {
-            // do nothing 
-        }*/ 
-        else {
+        } else {
             $stored_ids = amb_get_selected_ids($field);  
-            amb_generate_checkbox_group_any($field, $data, $stored_ids);
+            $field_label = isset($custom_labels[$field]) && !empty($custom_labels[$field]) ? $custom_labels[$field] : $data['field_label'];
+            amb_generate_checkbox_group_any($field, ['field_label' => $field_label, 'options' => $data['options']], $stored_ids);
         }
     }
     
@@ -588,24 +587,13 @@ function amb_generate_creator_objects($post_id) {
 }
 
 function amb_get_keywords($post_id) {
-    $keywords = '';
     $override_taxonomy = get_option('override_ambkeyword_taxonomy', '');
-
     if (!empty($override_taxonomy)) {
         $terms = wp_get_post_terms($post_id, $override_taxonomy, ['fields' => 'names']);
-        if (!is_wp_error($terms) && !empty($terms)) {
-            $keywords = implode(',', $terms);
-        }
     } else {
-        $terms = get_the_terms($post_id, 'ambkeywords');
-        if ($terms && !is_wp_error($terms)) {
-            foreach ($terms as $term) {
-                $tmp_keywords[] = $term->name;
-            }
-            $keywords = implode(',', $tmp_keywords);
-        }
+        $terms = wp_get_post_terms($post_id, 'ambkeywords', ['fields' => 'names']);
     }
-    return explode(',', $keywords);
+    return is_wp_error($terms) ? [] : $terms;
 }
 
 /**
@@ -614,15 +602,13 @@ function amb_get_keywords($post_id) {
  * @param WP_Post $post
  * @return string
  */
-function amb_get_description($post): string {
-    $description = '';
+function amb_get_description($post) {
     $use_excerpt_for_description = get_option('use_excerpt_for_description', 'no');
     if ($use_excerpt_for_description === 'yes') {
-        $description = get_the_excerpt($post);
+        return get_the_excerpt($post);
     } else {
-        $description = get_post_meta($post->ID, 'description', true);
-    } 
-    return $description;
+        return get_post_meta($post->ID, 'amb_description', true);
+    }
 }
 
 /**

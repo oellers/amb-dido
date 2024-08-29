@@ -64,6 +64,7 @@ function amb_dido_register_settings() {
     register_setting('amb_dido_settings_group', 'amb_dido_post_types', 'amb_dido_sanitize_post_types');
     register_setting('amb_dido_settings_group', 'amb_dido_taxonomy_mapping', 'amb_dido_sanitize_taxonomy_mapping');
     register_setting('amb_dido_settings_group', 'amb_dido_defaults', 'amb_dido_sanitize_defaults');
+    register_setting('amb_dido_settings_group', 'amb_dido_custom_labels', 'amb_dido_sanitize_custom_labels');
     register_setting('amb_dido_settings_group', 'amb_dido_metadata_display_options', 'amb_dido_sanitize_options');
     register_setting('amb_dido_settings_group', 'amb_dido_custom_fields', 'amb_dido_sanitize_custom_fields');
     register_setting('amb_dido_settings_group', 'override_ambkeyword_taxonomy', [
@@ -137,19 +138,33 @@ function amb_dido_default_section_description() {
 }
 
 function amb_dido_default_field_callback($args) {
-    $options = get_option('amb_dido_defaults');
-    echo "<select name='amb_dido_defaults[{$args['id']}]'>";
-    echo "<option value=''>--Keine Auswahl--</option>";
-    echo "<option value='deactivate'" . ($options[$args['id']] === 'deactivate' ? ' selected="selected"' : '') . ">--Feld ausblenden--</option>";
-    foreach ($args['options'] as $option_array) {
-        foreach ($option_array as $id => $label) {
-            if(!is_array($label)) {
-                $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
-                echo "<option value='$id' $selected>$label</option>";
-            }
-        }
+  $options = get_option('amb_dido_defaults');
+  $custom_labels = get_option('amb_dido_custom_labels', array());
+
+  echo "<select name='amb_dido_defaults[{$args['id']}]'>";
+  echo "<option value=''>--Keine Auswahl--</option>";
+  echo "<option value='deactivate'" . ($options[$args['id']] === 'deactivate' ? ' selected="selected"' : '') . ">--Feld ausblenden--</option>";
+  foreach ($args['options'] as $option_array) {
+    foreach ($option_array as $id => $label) {
+      if(!is_array($label)) {
+        $selected = isset($options[$args['id']]) && $options[$args['id']] == $id ? 'selected="selected"' : '';
+        echo "<option value='$id' $selected>$label</option>";
+      }
     }
-    echo "</select>";
+  }
+  echo "</select>";
+
+  // Hinzufügen des Eingabefelds für das benutzerdefinierte Label
+  $custom_label = isset($custom_labels[$args['id']]) ? $custom_labels[$args['id']] : '';
+  echo " <input type='text' name='amb_dido_custom_labels[{$args['id']}]' value='" . esc_attr($custom_label) . "' placeholder='Benutzerdefiniertes Label'>";
+}
+
+function amb_dido_sanitize_custom_labels($input) {
+  $sanitized_input = array();
+  foreach ($input as $key => $value) {
+    $sanitized_input[$key] = sanitize_text_field($value);
+  }
+  return $sanitized_input;
 }
 
 function amb_dido_sanitize_defaults($value) {
